@@ -1,0 +1,43 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "compileRc",
+            "type": "shell",
+            "command": "windres",
+            "args": [
+                "windowsresources.rc",
+                "-o windowsresources.o"
+            ],
+        },  
+        {
+            "label": "compile",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "*.cpp",
+                "-mwindows",
+                "-o LudoGame",
+                " windowsresources.o"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn":[
+                "compileRc"
+            ]
+        },
+        {
+            "label": "execute",
+            "type": "shell",
+            "command": "& '.\\ LudoGame.exe'",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        }
+    ]
+}
