@@ -1,4 +1,4 @@
-#include "headers/board.hpp"
+#include "../headers/board.hpp"
 #include <map>
 
 

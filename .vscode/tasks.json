@@ -17,7 +17,7 @@
             "type": "shell",
             "command": "g++",
             "args": [
-                "*.cpp",
+                "source/*.cpp",
                 "-mwindows",
                 "-o LudoGame",
                 " windowsresources.o"
