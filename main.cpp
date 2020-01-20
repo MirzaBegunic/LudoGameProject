@@ -33,10 +33,18 @@ void drawBackground(HDC, RECT*);
 
 bool initialize();
 void CheckInput(RECT * rect);
+void test(HDC hdc);
+
+/**
+ * global variables 
+ */
 
 HWND mainGameHwnd,startmenuHwnd;
 
 ofstream logg;
+
+std::map<int,std::map<int,board_field>> mapOfPlayerHomes;
+std::map<int,board_field> mapOfBoard;
 
 INT_PTR CALLBACK DlgStart(HWND hdlg, UINT message,WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WindowProcedureStart (HWND, UINT, WPARAM, LPARAM);
@@ -258,9 +266,13 @@ void drawScene(HDC hdc, RECT* rect) {
 
     BitBlt(hdc, 0, 0, rect->right, rect->bottom, hdcBuffer, 0, 0, SRCCOPY);
 
+    test(hdc);
+
     SelectObject(hdcBuffer, oldHbmBuffer);
     DeleteDC(hdcBuffer);
     DeleteObject(hbmBuffer);
+
+
 }
 
 void drawBackground(HDC hdc, RECT* rect) {
@@ -314,6 +326,8 @@ bool initialize() {
     drawSceneForStart(hdcStart,&rect1);
     ReleaseDC(startmenuHwnd,hdcStart);
     ShowWindow (startmenuHwnd, mCmdShow);
+    mapOfPlayerHomes = generatePlayerHomes();
+    mapOfBoard = generateBoard();
     return true;
 }
 
@@ -322,5 +336,20 @@ void CheckInput(RECT * rect){
         POINT p;
         GetCursorPos(&p);
         logg<<p.x<<":"<<p.y<<"\n";
+    }
+}
+
+void test(HDC hdc) {
+    for (int i=1; i<=4; ++i) {
+        map<int, board_field> tmp = mapOfPlayerHomes[i];
+
+        for(int j=1; j<=4; ++j) {
+            board_field bf = tmp[j];
+            Rectangle(hdc, bf.left, bf.top, bf.right, bf.bottom);
+        }
+    }
+    for(int i=0; i<=81; ++i) {
+        board_field bf = mapOfBoard[i];
+        Rectangle(hdc, bf.left, bf.top, bf.right, bf.bottom);
     }
 }

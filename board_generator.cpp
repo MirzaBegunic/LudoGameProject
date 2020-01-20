@@ -155,3 +155,40 @@ std::map<int,board_field> generateBoard() {
 
     return positionMap;
 }
+
+std::map<int, board_field> generateHome(int startX, int startY) {
+    board_field bf;
+
+    std::map<int, board_field> player;
+    bf.xPos = startX;
+    bf.yPos = startY;
+    generateBounds(bf);
+    player[1] = bf;
+
+    bf.xPos = bf.xPos + 170;
+    generateBounds(bf);
+    player[2] = bf;
+
+    bf.yPos = bf.yPos + 170;
+    generateBounds(bf);
+    player[4] = bf;
+
+    bf.xPos = bf.xPos - 170;
+    generateBounds(bf);
+    player[3] = bf;
+
+    return player;
+}
+
+std::map<int, std::map<int, board_field>> generatePlayerHomes() {
+    std::map<int, std::map<int, board_field>> playerHomes;
+
+    playerHomes[1] = generateHome(150, 150);
+    playerHomes[2] = generateHome(710, 150);
+    playerHomes[3] = generateHome(150, 710);
+    playerHomes[4] = generateHome(710, 710);
+
+    return playerHomes;
+}
+
+

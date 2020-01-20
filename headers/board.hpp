@@ -3,8 +3,6 @@
 
 #include <map>
 
-
-
 struct board_field
 {
     double xPos;
@@ -15,7 +13,8 @@ struct board_field
     int bottom;
 };
 
-
 std::map<int,board_field> generateBoard();
+std::map<int,std::map<int,board_field>> generatePlayerHomes();
+
 
 #endif
