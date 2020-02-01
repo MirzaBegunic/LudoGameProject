@@ -1,18 +1,19 @@
 #include "../headers/board.hpp"
 #include <map>
+#include <list>
 
 
-void generateBounds(board_field& bf) {
+void generateBounds(BoardField& bf) {
     bf.bottom = bf.yPos + 27;
     bf.left = bf.xPos - 27;
     bf.top = bf.yPos - 27;
     bf.right = bf.xPos + 27;
 }
 
-std::map<int,board_field> generateBoard() {
-    std::map<int, board_field> positionMap;
+std::map<int,BoardField> generateBoard() {
+    std::map<int, BoardField> positionMap;
     // first vertical row
-    board_field lastField;
+    BoardField lastField;
     lastField.xPos = 450;
     lastField.yPos = 945;
     generateBounds(lastField);
@@ -72,7 +73,7 @@ std::map<int,board_field> generateBoard() {
 
     lastField.yPos = lastField.yPos - 54.6 - 7;
         generateBounds(lastField);
-    positionMap[75] = lastField;
+    positionMap[80] = lastField;
 
     for (int i=35; i>= 29; --i) {
         lastField.yPos = lastField.yPos - 54.6 - 7;
@@ -120,7 +121,7 @@ std::map<int,board_field> generateBoard() {
         generateBounds(lastField);
     }
 
-    for(int i=76; i<=80; ++i) {
+    for(int i=79; i>=75; --i) {
         lastField.xPos = lastField.xPos + 54.6 + 7;
         generateBounds(lastField);
         positionMap[i] = lastField;
@@ -153,40 +154,43 @@ std::map<int,board_field> generateBoard() {
         positionMap[i] = lastField;
     }
 
+    for(int i=1; i<=81; ++i) {
+        positionMap[i].index = i;
+    }
     return positionMap;
 }
 
-std::map<int, board_field> generateHome(int startX, int startY) {
-    board_field bf;
+std::map<int, BoardField> generateHome(int startX, int startY, std::list<BoardField> & bF) {
+    BoardField bf;
 
-    std::map<int, board_field> player;
+    std::map<int, BoardField> player;
     bf.xPos = startX;
     bf.yPos = startY;
     generateBounds(bf);
     player[1] = bf;
-
+    bF.push_front(player[1]);
     bf.xPos = bf.xPos + 170;
     generateBounds(bf);
     player[2] = bf;
-
+    bF.push_front(player[2]);
     bf.yPos = bf.yPos + 170;
     generateBounds(bf);
     player[4] = bf;
-
+    bF.push_front(player[4]);
     bf.xPos = bf.xPos - 170;
     generateBounds(bf);
     player[3] = bf;
-
+    bF.push_front(player[3]);
     return player;
 }
 
-std::map<int, std::map<int, board_field>> generatePlayerHomes() {
-    std::map<int, std::map<int, board_field>> playerHomes;
+std::map<int, std::map<int, BoardField>> generatePlayerHomes(std::list<BoardField> & bF) {
+    std::map<int, std::map<int, BoardField>> playerHomes;
 
-    playerHomes[1] = generateHome(150, 150);
-    playerHomes[2] = generateHome(710, 150);
-    playerHomes[3] = generateHome(150, 710);
-    playerHomes[4] = generateHome(710, 710);
+    playerHomes[1] = generateHome(150, 150, bF);
+    playerHomes[2] = generateHome(710, 150, bF);
+    playerHomes[3] = generateHome(710, 710, bF);
+    playerHomes[4] = generateHome(150, 710, bF);
 
     return playerHomes;
 }

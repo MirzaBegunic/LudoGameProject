@@ -2,9 +2,11 @@
 #define BOARD_HPP
 
 #include <map>
+#include <list>
 
-struct board_field
+struct BoardField
 {
+    int index;
     double xPos;
     double yPos;
     int top;
@@ -13,8 +15,13 @@ struct board_field
     int bottom;
 };
 
-std::map<int,board_field> generateBoard();
-std::map<int,std::map<int,board_field>> generatePlayerHomes();
+struct Board{
+    std::map<int, BoardField> boardPositions;
+    std::map<int,std::map<int,BoardField>> homeBoardPositions;
+};
+
+std::map<int,BoardField> generateBoard();
+std::map<int,std::map<int,BoardField>> generatePlayerHomes(std::list<BoardField> &);
 
 
 #endif

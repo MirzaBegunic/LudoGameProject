@@ -5,7 +5,7 @@
 #endif
 
 #define Pressed(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
-#define pause 10
+#define pause 100
 
 #include <tchar.h>
 #include <windows.h>
@@ -13,10 +13,19 @@
 #include <fstream>
 #include <iostream>
 #include <commctrl.h>
-
+#include <stdlib.h>
+#include <ios>
+#include <cstdio>
+#include <io.h>
+#include <fcntl.h>
+#include <list>
+#include <map>
+#include "../headers/diceNumberGenerator.hpp"
 #include "../headers/board.hpp"
 #include "../headers/resource.h"
 #include "../headers/mainFunc.hpp"
+#include "../headers/gameutil.hpp"
+#include "../headers/player.hpp"
 
 using namespace std;
 
@@ -37,14 +46,24 @@ HBITMAP hbmStartBackground;
 HWND mainGameHwnd, startmenuHwnd;
 
 
-std::map<int, std::map<int, board_field>> mapOfPlayerHomes;
-std::map<int, board_field> mapOfBoard;
+std::map<int, std::map<int, BoardField>> mapOfPlayerHomes;
+std::map<int, BoardField> mapOfBoard;
+std::vector<Player> players;
+std::vector<Pawn> pOnePawns;
+std::vector<Pawn> pTwoPawns;
+std::vector<Pawn> pFourPawns;
+std::vector<Pawn> pThreePawns;
+std::list<BoardField> busyFields;
 
+int currentPlayerIndedx = 1;
+int currentDiceNumber = 1;
+bool shouldPickPawn = false;
 
 TCHAR szClassName[] = _T("LudoGameApp");
 TCHAR startClassName[] = _T("Start");
-
+void testMove(Player player, std::ofstream & logg);
 int mCmdShow;
+
 
 int WINAPI WinMain(HINSTANCE hThisInstance,
                    HINSTANCE hPrevInstance,
@@ -52,7 +71,6 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
                    int nCmdShow)
 {
     logg.open("logs.txt");
-
     MSG messages;
     WNDCLASSEX wincl, winclStartMenu;
     mCmdShow = nCmdShow;
@@ -76,10 +94,11 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
         CW_USEDEFAULT,
         1280,
         1064,
-        HWND_DESKTOP,
+        NULL,
         NULL,
         hThisInstance,
         NULL);
+
 
     startmenuHwnd = CreateWindowEx(
         0,
@@ -90,11 +109,10 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
         20,
         500,
         700,
-        HWND_DESKTOP,
+        NULL,
         NULL,
         hThisInstance,
         NULL);
-
    // showStart();
 
     if (initialize() && showStart())
@@ -117,8 +135,8 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
             RECT rect;
             GetClientRect(mainGameHwnd, &rect);
             drawScene(hdc, &rect,hbmBackground, hbmBoardMask, hbmBoard);
+            testPawn(hdc, players);
             ReleaseDC(mainGameHwnd, hdc);
-            CheckInput(&rect);
             while ((GetTickCount() - time_start) < pause)
             {
                 Sleep(5);
@@ -144,6 +162,67 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
         logg.close();
         PostQuitMessage(0); /* send a WM_QUIT to the message queue */
         break;
+    case WM_LBUTTONDOWN: {
+        if(shouldPickPawn) {
+            int x = LOWORD(lParam);
+            int y = HIWORD(lParam);
+            if (pawnSelection(logg,players.at(currentPlayerIndedx-1), x, y,mapOfPlayerHomes, mapOfBoard)) {
+                if(calculatePlayerMove(players.at(currentPlayerIndedx-1), mapOfBoard, logg)){
+                    shouldPickPawn = false;
+                    if(checkIfPawnsShouldBeEaten(players, players.at(currentPlayerIndedx-1), mapOfPlayerHomes))
+                        MessageBox(mainGameHwnd, "This Guy FUCKS","Ouuu", MB_OKCANCEL);
+                    if (currentDiceNumber != 6) {
+                        nextPlayer();
+                    }
+                } else {
+                    MessageBox(mainGameHwnd, "Pijun se ne moze pomjeriti","Error", MB_OKCANCEL);
+                }
+            } else {
+                MessageBox(mainGameHwnd, "Los odabir","Fail", MB_OKCANCEL);
+
+            }
+        } else {
+            MessageBox(mainGameHwnd, "Prvo bacit kockicu","Fail", MB_OKCANCEL);
+        }
+        break;
+    }    
+
+    case WM_RBUTTONDOWN: {
+        if (!shouldPickPawn) {
+            currentDiceNumber = rollTheDice(players.at(currentPlayerIndedx-1));
+            vector<Pawn> pawns = players.at(currentPlayerIndedx-1).pawns;
+            bool rollAgain = true;
+            if(currentDiceNumber == 6) {
+                rollAgain = false;
+            }
+            for (Pawn pawn : pawns) {
+                if(pawn.currentPosition != 0 && !pawn.isFinished) rollAgain = false;
+            }
+            if (!rollAgain) {
+                shouldPickPawn = true;
+                char buf[5];
+                sprintf(buf, "Bacena je %d,Odaberi pijuna", currentDiceNumber);
+                MessageBox(mainGameHwnd,buf,"Kockica",MB_OK);
+                logg<<"\n";
+            } else {
+                MessageBox(mainGameHwnd,"Upps! nisi bacio sest, baci ponovno","Kockica",MB_OK);
+                updatePoints(players.at(currentPlayerIndedx-1),-10); 
+            }
+        }         
+        break;
+    }
+    case WM_KEYDOWN: {
+            switch (wParam) 
+            { 
+                case VK_LEFT: 
+                    shouldPickPawn = false;
+                    updatePoints(players.at(currentPlayerIndedx-1),-10); 
+                    nextPlayer();
+                    break; 
+            }
+            break;
+    }
+
     default: /* for messages that we don't deal with */
         return DefWindowProc(hwnd, message, wParam, lParam);
     }
@@ -171,11 +250,12 @@ LRESULT CALLBACK WindowProcedureStart(HWND hwnd, UINT message, WPARAM wParam, LP
         case ID_START:
         {
             ShowWindow(mainGameHwnd, mCmdShow);
-            CloseWindow(hwnd);
+            CloseWindow(startmenuHwnd);
             break;
         }
         case ID_EXIT:
         {
+            DestroyWindow(startmenuHwnd);
             PostQuitMessage(0);
             break;
         }
@@ -184,7 +264,7 @@ LRESULT CALLBACK WindowProcedureStart(HWND hwnd, UINT message, WPARAM wParam, LP
     }
     case WM_DESTROY:
         logg.close();
-        PostQuitMessage(0); 
+        //PostQuitMessage(0); 
         break;
     default: 
         return DefWindowProc(hwnd, message, wParam, lParam);
@@ -204,8 +284,10 @@ void loadResources()
 bool initialize()
 {
     loadResources();
-    mapOfPlayerHomes = generatePlayerHomes();
+    mapOfPlayerHomes = generatePlayerHomes(busyFields);
     mapOfBoard = generateBoard();
+    players = loadGame(pOnePawns, pTwoPawns, pThreePawns, pFourPawns, mapOfPlayerHomes);
+
     return true;
 }
 
@@ -218,13 +300,10 @@ bool showStart() {
     ShowWindow(startmenuHwnd, mCmdShow);
 }
 
-void CheckInput(RECT *rect)
-{
-    if (Pressed(VK_LBUTTON))
-    {
-        POINT p;
-        GetCursorPos(&p);
-        logg << p.x << ":" << p.y << "\n";
+void nextPlayer() {
+    if(currentPlayerIndedx == 4) {
+        currentPlayerIndedx = 1;
+    } else {
+        currentPlayerIndedx += 1;
     }
 }
-

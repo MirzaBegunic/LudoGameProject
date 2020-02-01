@@ -2,6 +2,9 @@
 #define MAINFUNC_HPP
 
 #include<windef.h>
+#include<vector>
+#include<map>
+#include"player.hpp"
 
 void loadResources();
 void drawScene(HDC, RECT *, HBITMAP, HBITMAP, HBITMAP);
@@ -9,9 +12,10 @@ void drawSceneForStart(HDC, RECT *, HBITMAP);
 bool showStart();
 
 bool initialize();
-void CheckInput(RECT *rect);
-void testFields(HDC hdc, std::map<int, board_field>& mapOfBoard, std::map<int, std::map<int, board_field>>& mapOfPlayerHomes);
+void nextPlayer();
 
+void testFields(HDC hdc, std::map<int, BoardField>& mapOfBoard, std::map<int, std::map<int, BoardField>>& mapOfPlayerHomes);
+void testPawn(HDC hdc, std::vector<Player> players);
 
 LRESULT CALLBACK WindowProcedureStart(HWND, UINT, WPARAM, LPARAM);
 
