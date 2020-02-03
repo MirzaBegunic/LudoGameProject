@@ -32,6 +32,8 @@ class Player {
     int currentDiceRolled = 0;
     int pawnPickedIndex = 0;
     int playerPoints = 0;
+    int finishCounter = 0;
+    int pawnsEaten = 0;
     std::vector<Pawn>& pawns;
 };
 

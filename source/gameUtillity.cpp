@@ -49,7 +49,7 @@ void updatePoints(Player & player, int amount, HWND& p1Result, HWND& p2Result, H
     }
 } 
 
-bool calculatePlayerMove(Player & player, std::map<int, BoardField> & mapOfBoard, std::ofstream & logg, HWND& p1Result, HWND& p2Result, HWND& p3Result, HWND& p4Result) {
+bool calculatePlayerMove(Player & player, std::map<int, BoardField> & mapOfBoard, std::ofstream & logg, HWND& p1Result, HWND& p2Result, HWND& p3Result, HWND& p4Result, std::vector<bool> & playersDone) {
     if(player.playerIndex == 4) {
         int startPoint = player.startingPoint;
         int curPos = player.pawns.at(player.pawnPickedIndex-1).currentPosition;
@@ -61,6 +61,10 @@ bool calculatePlayerMove(Player & player, std::map<int, BoardField> & mapOfBoard
             if(curPos == 63) 
                 player.pawns.at(player.pawnPickedIndex-1).isFinished = true;
                 updatePoints(player, 100, p1Result, p2Result, p3Result, p4Result);
+                player.finishCounter++;
+                if(player.finishCounter == 4) {
+                    playersDone.at(player.playerIndex-1) = true;
+                }
         } else {
             return false;
         }
@@ -95,6 +99,10 @@ bool calculatePlayerMove(Player & player, std::map<int, BoardField> & mapOfBoard
                 if(curPos == homeEnd) {
                     player.pawns.at(player.pawnPickedIndex-1).isFinished = true;
                     updatePoints(player, 10, p1Result, p2Result, p3Result, p4Result);
+                    player.finishCounter++;
+                    if(player.finishCounter == 4) {
+                    playersDone.at(player.playerIndex-1) = true;
+                     }
                 }
             } else {
                 return false;
@@ -187,7 +195,7 @@ bool pawnSelection(std::ofstream& loggg, Player & player, int sxPos, int syPos, 
     return false;
 }
 
-bool checkIfPawnsShouldBeEaten(std::vector<Player> & players, Player & currentPlayer, std::map<int, std::map<int, BoardField>>& mapOfPlayerHomes, HWND& p1Result, HWND& p2Result, HWND& p3Result, HWND& p4Result) {
+bool checkIfPawnsShouldBeEaten(std::vector<Player> & players, Player & currentPlayer, std::map<int, std::map<int, BoardField>>& mapOfPlayerHomes, HWND& p1Result, HWND& p2Result, HWND& p3Result, HWND& p4Result, std::vector<bool> & playersDone) {
     int lastPawnPosition = currentPlayer.pawns.at(currentPlayer.pawnPickedIndex-1).currentPosition;
     int pointsCounter = 0;
     
@@ -200,6 +208,10 @@ bool checkIfPawnsShouldBeEaten(std::vector<Player> & players, Player & currentPl
                         std::map<int, BoardField> map = mapOfPlayerHomes[players.at(i).playerIndex];
                         players.at(i).pawns.at(j).xPos = map[j+1].xPos;
                         players.at(i).pawns.at(j).yPos = map[j+1].yPos;
+                        players.at(i).pawns.at(j).isFinished = false;
+                        players.at(i).finishCounter--;
+                        playersDone.at(i) = false;
+                        currentPlayer.pawnsEaten++;
                         break;
                     }
             }

@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <list>
 #include <map>
+#include <algorithm>
 #include "../headers/diceNumberGenerator.hpp"
 #include "../headers/board.hpp"
 #include "../headers/resource.h"
@@ -41,6 +42,7 @@ HBITMAP hbmStartBackground;
 HBITMAP hbmEnterNamesBackground;
 HBITMAP hbmGameMenuBackground;
 HBITMAP hbmMainResultBackground;
+HBITMAP hbmFinalResultBackground;
 HBRUSH hbrushEditBox = 0;
 COLORREF blue=RGB(0,0,255);
 COLORREF red=RGB(255,0,0);
@@ -53,6 +55,7 @@ COLORREF yellow=RGB(255,255,0);
 
 HWND mainGameHwnd, startmenuHwnd,enterNamesHwnd,gameMenuHwnd,mainResultHwnd,finalResultHwnd;
 HWND p1Result, p2Result, p3Result, p4Result;
+HWND p1,p1Points,p1Pawns,p2,p2Points,p2Pawns,p3,p3Points,p3Pawns,p4,p4Points,p4Pawns;
 
 std::map<int, std::map<int, BoardField>> mapOfPlayerHomes;
 std::map<int, BoardField> mapOfBoard;
@@ -62,6 +65,7 @@ std::vector<Pawn> pTwoPawns;
 std::vector<Pawn> pFourPawns;
 std::vector<Pawn> pThreePawns;
 std::list<BoardField> busyFields;
+std::vector<bool> playersDone;
 
 char Player1[40];
 char Player2[40];
@@ -70,12 +74,6 @@ char Player4[40];
 int currentPlayerIndedx = 1;
 int currentDiceNumber = 1;
 bool shouldPickPawn = false;
-
-bool startShow = false;
-bool finalShow = false;
-bool enterShow = false;
-bool menuGameShow = false;
-bool resultMainShow = false;
 
 TCHAR szClassName[] = _T("LudoGameApp");
 TCHAR startClassName[] = _T("Start");
@@ -187,7 +185,7 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
 
         ShowWindow(enterNamesHwnd,SW_HIDE);
         ShowWindow(gameMenuHwnd,SW_HIDE);
-        ShowWindow(finalResultHwnd,SW_HIDE);
+        ShowWindow(finalResultHwnd, SW_HIDE);
 
 
     if (initialize() && showStart())
@@ -210,7 +208,7 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
             RECT rect;
             GetClientRect(mainGameHwnd, &rect);
             drawScene(hdc, &rect,hbmBackground, hbmBoardMask, hbmBoard);
-           // testPawn(hdc, players);
+            //testPawn(hdc, players);
             ReleaseDC(mainGameHwnd, hdc);
             while ((GetTickCount() - time_start) < pause)
             {
@@ -243,12 +241,21 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             int x = LOWORD(lParam);
             int y = HIWORD(lParam);
             if (pawnSelection(logg,players.at(currentPlayerIndedx-1), x, y,mapOfPlayerHomes, mapOfBoard)) {
-                if(calculatePlayerMove(players.at(currentPlayerIndedx-1), mapOfBoard, logg, p1Result, p2Result, p3Result, p4Result)){
+                if(calculatePlayerMove(players.at(currentPlayerIndedx-1), mapOfBoard, logg, p1Result, p2Result, p3Result, p4Result, playersDone)){
                     shouldPickPawn = false;
-                    if(checkIfPawnsShouldBeEaten(players, players.at(currentPlayerIndedx-1), mapOfPlayerHomes, p1Result, p2Result, p3Result, p4Result))
+                    if(checkIfPawnsShouldBeEaten(players, players.at(currentPlayerIndedx-1), mapOfPlayerHomes, p1Result, p2Result, p3Result, p4Result, playersDone))
                         MessageBox(mainGameHwnd, "This Guy FUCKS","Ouuu", MB_OKCANCEL);
                     if (currentDiceNumber != 6) {
                         nextPlayer();
+                    }
+                    bool finish = true;
+                    for(bool isFinish : playersDone) {
+                        if(!isFinish) {
+                            finish = false;
+                        }
+                    }
+                    if(finish) {
+                        endGame();
                     }
                 } else {
                     MessageBox(mainGameHwnd, "Pijun se ne moze pomjeriti","Error", MB_OKCANCEL);
@@ -262,16 +269,10 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
         }
         break;
     }    
-    case WM_KEYDOWN: {
-            switch (wParam) 
-            { 
-                case VK_LEFT: 
-                    shouldPickPawn = false;
-                    updatePoints(players.at(currentPlayerIndedx-1),-10, p1Result, p2Result, p3Result, p4Result); 
-                    nextPlayer();
-                    break; 
-            }
-            break;
+
+    case WM_RBUTTONDOWN: {
+        endGame();
+        break;
     }
 
     default: /* for messages that we don't deal with */
@@ -496,6 +497,7 @@ LRESULT CALLBACK WindowProcedureGameMenu(HWND hwnd, UINT message, WPARAM wParam,
         {
         case ID_RESTART:
         { //Restart igre 
+            reinitialize();
             break;
         }
         case ID_MUTE:
@@ -533,19 +535,19 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
         HINSTANCE hinst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);  
         HWND p1=CreateWindow("static",Player1, WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,140,310 , 230, 30, hwnd, (HMENU)ID_P1, hinst, NULL);  
-        HWND p1Result=CreateWindow("static","000000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        p1Result=CreateWindow("static","0", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,450,310 ,80,30, hwnd, (HMENU)ID_P1RESULT, hinst, NULL);    
         HWND p2=CreateWindow("static",Player2, WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,140,410 , 230, 30, hwnd, (HMENU)ID_P2, hinst, NULL);  
-        HWND p2Result=CreateWindow("static","000000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        p2Result=CreateWindow("static","0", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,450,410 ,80, 30, hwnd, (HMENU)ID_P2RESULT, hinst, NULL);    
         HWND p3=CreateWindow("static",Player3, WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,140,510 , 230, 30, hwnd, (HMENU)ID_P3, hinst, NULL);  
-        HWND p3Result=CreateWindow("static","000000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        p3Result=CreateWindow("static","0", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,450,510,80, 30, hwnd, (HMENU)ID_P3RESULT, hinst, NULL);    
         HWND p4=CreateWindow("static",Player4, WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,140,610 , 230, 30, hwnd, (HMENU)ID_P4, hinst, NULL);  
-        HWND p4Result=CreateWindow("static","000000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        p4Result=CreateWindow("static","0", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,450,610 ,80, 30, hwnd, (HMENU)ID_P4RESULT, hinst, NULL);    
         CreateWindow("button","DICE ROLLER", WS_CHILD | WS_VISIBLE | BS_CHECKBOX 
         | BS_PUSHLIKE,140,700 , 230, 80, hwnd, (HMENU)ID_DICE, hinst, NULL);  
@@ -620,10 +622,13 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
             createGameMenu();
             ShowWindow(gameMenuHwnd, SW_SHOW);
             showGameMenu();
-            //break;
+            break;
         }
         case ID_SKIP:{
-            //Skip player
+            shouldPickPawn = false;
+            updatePoints(players.at(currentPlayerIndedx-1),-10, p1Result, p2Result, p3Result, p4Result); 
+            nextPlayer();
+            break; 
         }
      }
         return 0;
@@ -655,29 +660,29 @@ LRESULT CALLBACK WindowProcedureFinalResult(HWND hwnd, UINT message, WPARAM wPar
                       80, 650, 250, 60, hwnd, (HMENU)ID_EXITFINAL, hinst, NULL);
         CreateWindowA("Button", "RESTART", WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_PUSHLIKE,
                       80,720, 250, 60, hwnd, (HMENU)ID_RESTARTFINAL, hinst, NULL);
-        HWND p1=CreateWindow("static","Player1", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p1=CreateWindow("static","Player1", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,50 , 230, 30, hwnd, (HMENU)ID_P1, hinst, NULL);  
-        HWND p1Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p1Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,90 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
-        HWND p1Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p1Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,130 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
-         HWND p2=CreateWindow("static","Player2", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p2=CreateWindow("static","Player2", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,180 , 230, 30, hwnd, (HMENU)ID_P2, hinst, NULL);  
-        HWND p2Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p2Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,220 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
-        HWND p2Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p2Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,260 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
-         HWND p3=CreateWindow("static","Player3", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p3=CreateWindow("static","Player3", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,300 , 230, 30, hwnd, (HMENU)ID_P3, hinst, NULL);  
-        HWND p3Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p3Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,340 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
-        HWND p3Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p3Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,380 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
-         HWND p4=CreateWindow("static","Player4", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p4=CreateWindow("static","Player4", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,430 , 230, 30, hwnd, (HMENU)ID_P4, hinst, NULL);  
-        HWND p4Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p4Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,470 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
-        HWND p4Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        p4Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,510 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
         HFONT hf;
         HDC hdc;
@@ -697,9 +702,9 @@ LRESULT CALLBACK WindowProcedureFinalResult(HWND hwnd, UINT message, WPARAM wPar
         hdc = BeginPaint(hwnd, &ps);
         RECT rect;
         GetClientRect(hwnd, &rect);
-        drawSceneForMainResult(hdc, &rect, hbmMainResultBackground);
+        drawSceneForMainResult(hdc, &rect, hbmFinalResultBackground);
         EndPaint(hwnd, &ps);
-        break
+        break;
     }
      case WM_CTLCOLOREDIT:
     { 
@@ -765,7 +770,7 @@ bool createMainResult(){
         mainResultClassName,
         _T("Result"),
         DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION|WS_VISIBLE|WS_GROUP | WS_TABSTOP | WS_POPUP ,
-        clientrect.right+105,
+        clientrect.right+125,
         clientrect.top+10,
         600,
         1021,
@@ -785,6 +790,7 @@ void loadResources()
     hbmEnterNamesBackground = (HBITMAP)LoadImage(NULL, "resources/namesbackground.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hbmGameMenuBackground = (HBITMAP)LoadImage(NULL, "resources/gamemenu.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hbmMainResultBackground= (HBITMAP)LoadImage(NULL, "resources/resultbackground.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmFinalResultBackground = (HBITMAP)LoadImage(NULL, "resources/finalresultbackground.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 }
 
 bool initialize()
@@ -793,7 +799,9 @@ bool initialize()
     mapOfPlayerHomes = generatePlayerHomes(busyFields);
     mapOfBoard = generateBoard();
     players = loadGame(pOnePawns, pTwoPawns, pThreePawns, pFourPawns, mapOfPlayerHomes);
-
+    for(int i=0; i<4; ++i) {
+        playersDone.push_back(false);
+    }
     return true;
 }
 
@@ -802,8 +810,6 @@ bool reinitialize() {
     pTwoPawns.clear();
     pThreePawns.clear();
     pFourPawns.clear();
-    mapOfPlayerHomes = generatePlayerHomes(busyFields);
-    mapOfBoard = generateBoard();
     players = loadGame(pOnePawns, pTwoPawns, pThreePawns, pFourPawns, mapOfPlayerHomes);
     players.at(0).playerName = Player1;
     players.at(1).playerName = Player2;
@@ -812,6 +818,15 @@ bool reinitialize() {
     currentPlayerIndedx = 1;
     currentDiceNumber = 1;
     shouldPickPawn = false;
+    SetWindowText(p1Result,"0");
+    SetWindowText(p2Result,"0");
+    SetWindowText(p3Result,"0");
+    SetWindowText(p4Result,"0");
+
+    playersDone.clear();
+    for(int i=0; i<4; ++i) {
+        playersDone.push_back(false);
+    }
 
     return true;
 }
@@ -854,7 +869,7 @@ bool showFinalResult() {
     HDC hdcResult = GetDC(finalResultHwnd);
     RECT rect1;
     GetClientRect(finalResultHwnd, &rect1);
-    drawSceneForMainResult(hdcResult, &rect1,hbmMainResultBackground);
+    drawSceneForMainResult(hdcResult, &rect1,hbmFinalResultBackground);
     ReleaseDC(finalResultHwnd, hdcResult);
     ShowWindow(finalResultHwnd, SW_SHOW);
 }
@@ -889,4 +904,36 @@ void diceRoller() {
             updatePoints(players.at(currentPlayerIndedx-1),-10, p1Result, p2Result, p3Result, p4Result); 
         }
     }    
+}
+
+bool comparePlayerPoints(const Player & p1, const Player & p2) {
+    return (p1.playerPoints > p2.playerPoints);
+}
+
+void setEndText(Player player, HWND& p, HWND& pPoint, HWND& pPawn) {
+    string player1Name = player.playerName;
+    int player1Points = player.playerPoints;
+    int player1PawnsEaten = player.pawnsEaten;
+    char nameBuff1[player1Name.length() + 1];
+    strcpy(nameBuff1, player1Name.c_str());
+    char pointsBuff1[7];
+    sprintf(pointsBuff1,"%d",player1Points);
+    char pawnsBuff1[10];
+    sprintf(pawnsBuff1,"%d",player1PawnsEaten);
+    SetWindowText(p,nameBuff1);
+    SetWindowText(pPoint, pointsBuff1);
+    SetWindowText(pPawn, pawnsBuff1);
+}
+
+void endGame() {
+    CloseWindow(mainGameHwnd);
+    CloseWindow(mainResultHwnd);
+    std::vector<Player> sortedPlayers = players;
+    //std::sort(sortedPlayers.begin(), sortedPlayers.end(), comparePlayerPoints);
+    setEndText(sortedPlayers.at(0),p1,p1Points,p1Pawns);
+    setEndText(sortedPlayers.at(1),p2,p2Points,p2Pawns);
+    setEndText(sortedPlayers.at(2),p3,p3Points,p3Pawns);
+    setEndText(sortedPlayers.at(3),p4,p4Points,p4Pawns);
+    ShowWindow(finalResultHwnd, SW_SHOW);
+    showFinalResult();
 }

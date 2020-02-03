@@ -20,6 +20,8 @@ bool showMainResult();
 bool initialize();
 void nextPlayer();
 void diceRoller();
+bool reinitialize();
+void endGame();
 
 LRESULT CALLBACK WindowProcedureFinalResult(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK WindowProcedureMainResult(HWND, UINT, WPARAM, LPARAM);
