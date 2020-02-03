@@ -37,4 +37,10 @@ class Player {
     std::vector<Pawn>& pawns;
 };
 
+struct PlayerForSort {
+    std::string playerName = " ";
+    int playerPoints;
+    int pawnsEaten;
+};
+
 #endif

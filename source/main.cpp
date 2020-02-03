@@ -62,11 +62,10 @@ HBITMAP hbmYellowPawnSmallMask;
 HBITMAP hbmBluePawnSmall;
 HBITMAP hbmBluewPawnSmallMask;
 
-HBRUSH hbrushEditBox = 0;
-COLORREF blue=RGB(0,0,255);
-COLORREF red=RGB(255,0,0);
-COLORREF green=RGB(0,255,0);
-COLORREF yellow=RGB(255,255,0);
+COLORREF blue=RGB(13,71,161);
+COLORREF red=RGB(183,28,28);
+COLORREF green=RGB(27,94,32);
+COLORREF yellow=RGB(253,216,53);
 
 /**
  * global variables 
@@ -363,6 +362,7 @@ LRESULT CALLBACK WindowProcedureEnterNames(HWND hwnd, UINT message, WPARAM wPara
 {
     HDC hdc;
     PAINTSTRUCT ps;
+    HBRUSH hbrushEditBox = CreateSolidBrush(RGB(159,168,218));
    
     switch (message) /* handle the messages */
     {
@@ -391,22 +391,25 @@ LRESULT CALLBACK WindowProcedureEnterNames(HWND hwnd, UINT message, WPARAM wPara
         if(GetDlgCtrlID((HWND)lParam) == ID_PLAYER1){
         HDC hdcEdit = (HDC)wParam; 
         SetTextColor(hdcEdit, yellow); 
-        SetBkMode(hdcEdit, TRANSPARENT);
+        SetBkColor(hdcEdit, RGB(159,168,218));
         return (LONG)hbrushEditBox; 
         } 
         if(GetDlgCtrlID((HWND)lParam) == ID_PLAYER2){
         HDC hdcEdit = (HDC)wParam; 
         SetTextColor(hdcEdit, blue); 
+            SetBkColor(hdcEdit, RGB(159,168,218));
         return (LONG)hbrushEditBox; 
         }
         if(GetDlgCtrlID((HWND)lParam) == ID_PLAYER3){
         HDC hdcEdit = (HDC)wParam; 
         SetTextColor(hdcEdit, red); 
+        SetBkColor(hdcEdit, RGB(159,168,218));
         return (LONG)hbrushEditBox; 
         }
         if(GetDlgCtrlID((HWND)lParam) == ID_PLAYER4){
         HDC hdcEdit = (HDC)wParam; 
         SetTextColor(hdcEdit, green); 
+        SetBkColor(hdcEdit, RGB(159,168,218));
         return (LONG)hbrushEditBox; 
         }
 
@@ -547,6 +550,12 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
 {    
     HDC hdc;
     PAINTSTRUCT ps;
+    static HBRUSH defaultbrush = NULL;
+    static HBRUSH hBrushR = CreateSolidBrush(RGB(239,83,80));
+    static HBRUSH hBrushY = CreateSolidBrush(RGB(255,241,118));
+    static HBRUSH hBrushG = CreateSolidBrush(RGB(129,199,132));
+    static HBRUSH hBrushB = CreateSolidBrush(RGB(100,181,246));
+
     switch (message) /* handle the messages */
     {
      
@@ -595,6 +604,33 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
         SendMessage(p4Result, WM_SETFONT, (WPARAM)hf, TRUE); 
         break;
     }
+    case WM_CTLCOLORSTATIC: {
+        DWORD CtrlID = GetDlgCtrlID((HWND)lParam);
+        if (CtrlID == ID_P1 || CtrlID == ID_P1RESULT) //If desired control
+        {
+            HDC hdcStatic = (HDC) wParam;
+            SetTextColor(hdcStatic, RGB(0,0,0));
+            SetBkColor(hdcStatic, RGB(255,241,118));
+            return (INT_PTR)hBrushY;
+        }else if (CtrlID == ID_P2 || CtrlID == ID_P2RESULT) {
+            HDC hdcStatic = (HDC) wParam;
+            SetTextColor(hdcStatic, RGB(0,0,0));
+            SetBkColor(hdcStatic, RGB(100,181,246));
+            return (INT_PTR)hBrushB;
+        }else if (CtrlID == ID_P3 || CtrlID == ID_P3RESULT) {
+            HDC hdcStatic = (HDC) wParam;
+            SetTextColor(hdcStatic, RGB(0,0,0));
+            SetBkColor(hdcStatic, RGB(239,83,80));
+            return (INT_PTR)hBrushR;
+        }else if (CtrlID == ID_P4 || CtrlID == ID_P4RESULT) {
+            HDC hdcStatic = (HDC) wParam;
+            SetTextColor(hdcStatic, RGB(0,0,0));
+            SetBkColor(hdcStatic, RGB(129,199,132));
+            return (INT_PTR)hBrushG;            
+        }
+        break;
+    }
+
     case WM_PAINT:{
         hdc = BeginPaint(hwnd, &ps);
         RECT rect;
@@ -670,6 +706,7 @@ LRESULT CALLBACK WindowProcedureFinalResult(HWND hwnd, UINT message, WPARAM wPar
 
     HDC hdc;
     PAINTSTRUCT ps;
+    static HBRUSH brushing = CreateSolidBrush(RGB(159,168,218));
 
     switch (message) /* handle the messages */
     {
@@ -742,17 +779,14 @@ LRESULT CALLBACK WindowProcedureFinalResult(HWND hwnd, UINT message, WPARAM wPar
         EndPaint(hwnd, &ps);
         break;
     }
-     case WM_CTLCOLOREDIT:
-    { 
-      if(GetDlgCtrlID((HWND)lParam) == ID_P4){
-        HDC hdcStatic = (HDC)wParam; 
-        SetBkMode(hdcStatic,TRANSPARENT);
-         return (LONG) hbrushEditBox; 
-        } 
-    
+    case WM_CTLCOLORSTATIC: {
+        HDC hdcStatic = (HDC) wParam;
+        SetTextColor(hdcStatic, RGB(74,0,114));
+        SetBkColor(hdcStatic, RGB(159,168,218));
+        return (INT_PTR)brushing;            
         break;
     }
-    
+
     case WM_COMMAND:
     {
         switch (LOWORD(wParam))
@@ -960,11 +994,11 @@ void diceRoller() {
     }    
 }
 
-bool comparePlayerPoints(const Player & p1, const Player & p2) {
+bool comparePlayerPoints(PlayerForSort p1, PlayerForSort p2) {
     return (p1.playerPoints > p2.playerPoints);
 }
 
-void setEndText(Player player, HWND& p, HWND& pPoint, HWND& pPawn) {
+void setEndText(PlayerForSort player, HWND& p, HWND& pPoint, HWND& pPawn) {
     string player1Name = player.playerName;
     int player1Points = player.playerPoints;
     int player1PawnsEaten = player.pawnsEaten;
@@ -982,8 +1016,15 @@ void setEndText(Player player, HWND& p, HWND& pPoint, HWND& pPawn) {
 void endGame() {
     CloseWindow(mainGameHwnd);
     CloseWindow(mainResultHwnd);
-    std::vector<Player> sortedPlayers = players;
-    //std::sort(sortedPlayers.begin(), sortedPlayers.end(), comparePlayerPoints);
+    std::vector<PlayerForSort> sortedPlayers;
+    for(Player player : players) {
+        PlayerForSort ps;
+        ps.playerName = player.playerName;
+        ps.pawnsEaten = player.pawnsEaten;
+        ps.playerPoints = player.playerPoints;
+        sortedPlayers.push_back(ps);
+    }
+    std::sort(sortedPlayers.begin(), sortedPlayers.end(), comparePlayerPoints);
     setEndText(sortedPlayers.at(0),p1,p1Points,p1Pawns);
     setEndText(sortedPlayers.at(1),p2,p2Points,p2Pawns);
     setEndText(sortedPlayers.at(2),p3,p3Points,p3Pawns);
