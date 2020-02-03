@@ -5,7 +5,7 @@
 #endif
 
 #define Pressed(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
-#define pause 100
+#define pause 10
 
 #include <tchar.h>
 #include <windows.h>
@@ -181,8 +181,10 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
 
         ShowWindow(enterNamesHwnd,SW_HIDE);
         ShowWindow(gameMenuHwnd,SW_HIDE);
+        ShowWindow(finalResultHwnd,SW_HIDE);
 
-    if (initialize() && showStart() && showFinalResult())
+
+    if (initialize() && showStart())
     {
         while (TRUE)
         {
@@ -202,7 +204,7 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
             RECT rect;
             GetClientRect(mainGameHwnd, &rect);
             drawScene(hdc, &rect,hbmBackground, hbmBoardMask, hbmBoard);
-            testPawn(hdc, players);
+           // testPawn(hdc, players);
             ReleaseDC(mainGameHwnd, hdc);
             while ((GetTickCount() - time_start) < pause)
             {
@@ -364,6 +366,7 @@ LRESULT CALLBACK WindowProcedureEnterNames(HWND hwnd, UINT message, WPARAM wPara
         if(GetDlgCtrlID((HWND)lParam) == ID_PLAYER1){
         HDC hdcEdit = (HDC)wParam; 
         SetTextColor(hdcEdit, blue); 
+        SetBkMode(hdcEdit, TRANSPARENT);
         return (LONG)hbrushEditBox; 
         } 
         if(GetDlgCtrlID((HWND)lParam) == ID_PLAYER2){
