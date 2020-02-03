@@ -58,13 +58,15 @@ bool calculatePlayerMove(Player & player, std::map<int, BoardField> & mapOfBoard
             curPos = startPoint;
         } else if(curPos+player.currentDiceRolled <= 63) {
             curPos = curPos + player.currentDiceRolled;
-            if(curPos == 63) 
+            if(curPos == 63) {
                 player.pawns.at(player.pawnPickedIndex-1).isFinished = true;
                 updatePoints(player, 100, p1Result, p2Result, p3Result, p4Result);
                 player.finishCounter++;
                 if(player.finishCounter == 4) {
                     playersDone.at(player.playerIndex-1) = true;
                 }
+            }
+
         } else {
             return false;
         }

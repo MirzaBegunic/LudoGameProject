@@ -7,7 +7,6 @@
 #include"player.hpp"
 
 void loadResources();
-void drawScene(HDC, RECT *, HBITMAP, HBITMAP, HBITMAP);
 void drawSceneForStart(HDC, RECT *, HBITMAP);
 void drawSceneForMainResult(HDC, RECT *, HBITMAP);
 bool createMainResult();
@@ -22,6 +21,7 @@ void nextPlayer();
 void diceRoller();
 bool reinitialize();
 void endGame();
+void drawScene(HDC hdc, RECT * rect);
 
 LRESULT CALLBACK WindowProcedureFinalResult(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK WindowProcedureMainResult(HWND, UINT, WPARAM, LPARAM);
