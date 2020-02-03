@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.idl": "cpp",
+        "future": "cpp",
+        "system_error": "cpp"
+    }
+}

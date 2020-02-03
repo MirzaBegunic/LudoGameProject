@@ -24,7 +24,7 @@ void drawScene(HDC hdc, RECT *rect, HBITMAP hbmBackground, HBITMAP hbmBoardMask,
     HDC hdcMem = CreateCompatibleDC(hdc);
 
     HBITMAP hbmOld = (HBITMAP)SelectObject(hdcMem, hbmBackground);
-    BitBlt(hdcBuffer, 0, 0, 1280, 1024, hdcMem, 0, 0,
+    BitBlt(hdcBuffer, 0, 0, 1000, 1024, hdcMem, 0, 0,
            SRCCOPY);
 
     (HBITMAP) SelectObject(hdcMem, hbmBoardMask);
@@ -53,6 +53,21 @@ void drawSceneForStart(HDC hdc, RECT *rect, HBITMAP hbmStartBackground)
     HDC hdcMem = CreateCompatibleDC(hdc);
     HBITMAP hbmOld = (HBITMAP)SelectObject(hdcMem, hbmStartBackground);
     BitBlt(hdcBuffer, 0, 0, 500, 700, hdcMem, 0, 0, SRCCOPY);
+    SelectObject(hdcMem, hbmOld);
+    DeleteDC(hdcMem);
+    BitBlt(hdc, 0, 0, rect->right, rect->bottom, hdcBuffer, 0, 0, SRCCOPY);
+    SelectObject(hdcBuffer, oldHbmBuffer);
+    DeleteDC(hdcBuffer);
+    DeleteObject(hbmBuffer);
+}
+void drawSceneForMainResult(HDC hdc, RECT *rect, HBITMAP hbmBackground)
+{
+    HDC hdcBuffer = CreateCompatibleDC(hdc);
+    HBITMAP hbmBuffer = CreateCompatibleBitmap(hdc, rect->right, rect->bottom);
+    HBITMAP oldHbmBuffer = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
+    HDC hdcMem = CreateCompatibleDC(hdc);
+    HBITMAP hbmOld = (HBITMAP)SelectObject(hdcMem, hbmBackground);
+    BitBlt(hdcBuffer, 0, 0, 400, 920, hdcMem, 0, 0, SRCCOPY);
     SelectObject(hdcMem, hbmOld);
     DeleteDC(hdcMem);
     BitBlt(hdc, 0, 0, rect->right, rect->bottom, hdcBuffer, 0, 0, SRCCOPY);
