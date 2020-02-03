@@ -5,6 +5,8 @@
 #include <map>
 #include <vector>
 #include <fstream>
+#include <windows.h>
+
 
 int rollTheDice(Player & player) {
     int diceNum = generateDiceNumber();
@@ -12,11 +14,42 @@ int rollTheDice(Player & player) {
     return diceNum;
 }
 
-void updatePoints(Player & player, int amount) {
+void updatePoints(Player & player, int amount, HWND& p1Result, HWND& p2Result, HWND& p3Result, HWND& p4Result) {
     player.playerPoints += amount;
+    switch (player.playerIndex)
+    {
+    case 1: {
+        char buf[6];
+        sprintf(buf, "%d", player.playerPoints);
+        SetWindowText(p1Result, buf);
+        break;
+    }
+    case 2: {
+        char buf[6];
+        sprintf(buf, "%d", player.playerPoints);
+        SetWindowText(p2Result, buf);
+        break;
+    }
+    case 3: {
+        char buf[6];
+        sprintf(buf, "%d", player.playerPoints);
+        SetWindowText(p3Result, buf);
+        break;
+    }
+
+    case 4: {
+        char buf[6];
+        sprintf(buf, "%d", player.playerPoints);
+        SetWindowText(p4Result, buf);
+        break;
+    }
+    
+    default:
+        break;
+    }
 } 
 
-bool calculatePlayerMove(Player & player, std::map<int, BoardField> & mapOfBoard, std::ofstream & logg) {
+bool calculatePlayerMove(Player & player, std::map<int, BoardField> & mapOfBoard, std::ofstream & logg, HWND& p1Result, HWND& p2Result, HWND& p3Result, HWND& p4Result) {
     if(player.playerIndex == 4) {
         int startPoint = player.startingPoint;
         int curPos = player.pawns.at(player.pawnPickedIndex-1).currentPosition;
@@ -27,7 +60,7 @@ bool calculatePlayerMove(Player & player, std::map<int, BoardField> & mapOfBoard
             curPos = curPos + player.currentDiceRolled;
             if(curPos == 63) 
                 player.pawns.at(player.pawnPickedIndex-1).isFinished = true;
-                updatePoints(player, 100);
+                updatePoints(player, 100, p1Result, p2Result, p3Result, p4Result);
         } else {
             return false;
         }
@@ -61,7 +94,7 @@ bool calculatePlayerMove(Player & player, std::map<int, BoardField> & mapOfBoard
                 curPos = curPos + player.currentDiceRolled;
                 if(curPos == homeEnd) {
                     player.pawns.at(player.pawnPickedIndex-1).isFinished = true;
-                    updatePoints(player, 100);
+                    updatePoints(player, 10, p1Result, p2Result, p3Result, p4Result);
                 }
             } else {
                 return false;
@@ -154,7 +187,7 @@ bool pawnSelection(std::ofstream& loggg, Player & player, int sxPos, int syPos, 
     return false;
 }
 
-bool checkIfPawnsShouldBeEaten(std::vector<Player> & players, Player & currentPlayer, std::map<int, std::map<int, BoardField>>& mapOfPlayerHomes) {
+bool checkIfPawnsShouldBeEaten(std::vector<Player> & players, Player & currentPlayer, std::map<int, std::map<int, BoardField>>& mapOfPlayerHomes, HWND& p1Result, HWND& p2Result, HWND& p3Result, HWND& p4Result) {
     int lastPawnPosition = currentPlayer.pawns.at(currentPlayer.pawnPickedIndex-1).currentPosition;
     int pointsCounter = 0;
     
@@ -172,7 +205,7 @@ bool checkIfPawnsShouldBeEaten(std::vector<Player> & players, Player & currentPl
             }
         }
     }
-    updatePoints(currentPlayer, pointsCounter * 200);
+    updatePoints(currentPlayer, pointsCounter * 200, p1Result, p2Result, p3Result, p4Result);
     if(pointsCounter>0) return true;
     else return false;    
 }

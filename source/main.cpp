@@ -52,7 +52,7 @@ COLORREF yellow=RGB(255,255,0);
  */
 
 HWND mainGameHwnd, startmenuHwnd,enterNamesHwnd,gameMenuHwnd,mainResultHwnd,finalResultHwnd;
-
+HWND p1Result, p2Result, p3Result, p4Result;
 
 std::map<int, std::map<int, BoardField>> mapOfPlayerHomes;
 std::map<int, BoardField> mapOfBoard;
@@ -65,11 +65,17 @@ std::list<BoardField> busyFields;
 
 char Player1[40];
 char Player2[40];
-char Player3[40]="Player three";
-char Player4[40]="Player four";
+char Player3[40];
+char Player4[40];
 int currentPlayerIndedx = 1;
 int currentDiceNumber = 1;
 bool shouldPickPawn = false;
+
+bool startShow = false;
+bool finalShow = false;
+bool enterShow = false;
+bool menuGameShow = false;
+bool resultMainShow = false;
 
 TCHAR szClassName[] = _T("LudoGameApp");
 TCHAR startClassName[] = _T("Start");
@@ -237,9 +243,9 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             int x = LOWORD(lParam);
             int y = HIWORD(lParam);
             if (pawnSelection(logg,players.at(currentPlayerIndedx-1), x, y,mapOfPlayerHomes, mapOfBoard)) {
-                if(calculatePlayerMove(players.at(currentPlayerIndedx-1), mapOfBoard, logg)){
+                if(calculatePlayerMove(players.at(currentPlayerIndedx-1), mapOfBoard, logg, p1Result, p2Result, p3Result, p4Result)){
                     shouldPickPawn = false;
-                    if(checkIfPawnsShouldBeEaten(players, players.at(currentPlayerIndedx-1), mapOfPlayerHomes))
+                    if(checkIfPawnsShouldBeEaten(players, players.at(currentPlayerIndedx-1), mapOfPlayerHomes, p1Result, p2Result, p3Result, p4Result))
                         MessageBox(mainGameHwnd, "This Guy FUCKS","Ouuu", MB_OKCANCEL);
                     if (currentDiceNumber != 6) {
                         nextPlayer();
@@ -256,37 +262,12 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
         }
         break;
     }    
-
-    case WM_RBUTTONDOWN: {
-        if (!shouldPickPawn) {
-            currentDiceNumber = rollTheDice(players.at(currentPlayerIndedx-1));
-            vector<Pawn> pawns = players.at(currentPlayerIndedx-1).pawns;
-            bool rollAgain = true;
-            if(currentDiceNumber == 6) {
-                rollAgain = false;
-            }
-            for (Pawn pawn : pawns) {
-                if(pawn.currentPosition != 0 && !pawn.isFinished) rollAgain = false;
-            }
-            if (!rollAgain) {
-                shouldPickPawn = true;
-                char buf[5];
-                sprintf(buf, "Bacena je %d,Odaberi pijuna", currentDiceNumber);
-                MessageBox(mainGameHwnd,buf,"Kockica",MB_OK);
-                logg<<"\n";
-            } else {
-                MessageBox(mainGameHwnd,"Upps! nisi bacio sest, baci ponovno","Kockica",MB_OK);
-                updatePoints(players.at(currentPlayerIndedx-1),-10); 
-            }
-        }         
-        break;
-    }
     case WM_KEYDOWN: {
             switch (wParam) 
             { 
                 case VK_LEFT: 
                     shouldPickPawn = false;
-                    updatePoints(players.at(currentPlayerIndedx-1),-10); 
+                    updatePoints(players.at(currentPlayerIndedx-1),-10, p1Result, p2Result, p3Result, p4Result); 
                     nextPlayer();
                     break; 
             }
@@ -302,6 +283,9 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 
 LRESULT CALLBACK WindowProcedureStart(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    HDC hdc;
+    PAINTSTRUCT ps;
+
     switch (message) /* handle the messages */
     {
     case WM_CREATE:
@@ -311,6 +295,15 @@ LRESULT CALLBACK WindowProcedureStart(HWND hwnd, UINT message, WPARAM wParam, LP
                       110, 320, 250, 60, hwnd, (HMENU)ID_START, hinst, NULL);
         CreateWindowA("Button", "EXIT", WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_PUSHLIKE,
                       110, 390, 250, 60, hwnd, (HMENU)ID_EXIT, hinst, NULL);
+        break;
+    }
+
+    case WM_PAINT: {
+        hdc = BeginPaint(hwnd, &ps);
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        drawSceneForStart(hdc, &rect, hbmStartBackground);
+        EndPaint(hwnd, &ps);
         break;
     }
     case WM_COMMAND:
@@ -347,6 +340,8 @@ LRESULT CALLBACK WindowProcedureStart(HWND hwnd, UINT message, WPARAM wParam, LP
 
 LRESULT CALLBACK WindowProcedureEnterNames(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    HDC hdc;
+    PAINTSTRUCT ps;
    
     switch (message) /* handle the messages */
     {
@@ -359,6 +354,15 @@ LRESULT CALLBACK WindowProcedureEnterNames(HWND hwnd, UINT message, WPARAM wPara
         CreateWindow("Edit", "", WS_CHILD | WS_VISIBLE | WS_BORDER |ES_AUTOHSCROLL|ES_CENTER, 130,290 , 300, 30, hwnd, (HMENU)ID_PLAYER2, hinst, NULL);        
         CreateWindow("Edit", "", WS_CHILD | WS_VISIBLE | WS_BORDER |ES_AUTOHSCROLL|ES_CENTER, 130,390 , 300, 30, hwnd, (HMENU)ID_PLAYER3, hinst, NULL);  
         CreateWindow("Edit", "", WS_CHILD | WS_VISIBLE | WS_BORDER |ES_AUTOHSCROLL|ES_CENTER, 130,490 , 300, 30, hwnd, (HMENU)ID_PLAYER4, hinst, NULL); 
+        break;
+    }
+    case WM_PAINT:
+    {
+        hdc = BeginPaint(hwnd, &ps);
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        drawSceneForStart(hdc, &rect, hbmEnterNamesBackground);
+        EndPaint(hwnd, &ps);
         break;
     }
     case WM_CTLCOLOREDIT:
@@ -396,6 +400,7 @@ LRESULT CALLBACK WindowProcedureEnterNames(HWND hwnd, UINT message, WPARAM wPara
                 if(HIWORD(wParam)==EN_CHANGE)
                 {  
                    GetWindowText((HWND)lParam,Player1,40);
+                   players.at(0).playerName = Player1;
                 }
                 break;
         
@@ -404,18 +409,21 @@ LRESULT CALLBACK WindowProcedureEnterNames(HWND hwnd, UINT message, WPARAM wPara
                 if(HIWORD(wParam)==EN_CHANGE)
                 {
                     GetWindowText((HWND)lParam,Player2,40);
+                    players.at(1).playerName = Player2;
                 }
                 break;
         case ID_PLAYER3:
                 if(HIWORD(wParam)==EN_CHANGE)
                 {   
                     GetWindowText((HWND)lParam,Player3,40);
+                    players.at(2).playerName = Player3;
                 }
                 break;
         case ID_PLAYER4:
                 if(HIWORD(wParam)==EN_CHANGE)
                 {   
                     GetWindowText((HWND)lParam,Player4,40);   
+                    players.at(3).playerName = Player4;
                 }
                 break;   
         case ID_CONTINUE:
@@ -456,6 +464,9 @@ LRESULT CALLBACK WindowProcedureEnterNames(HWND hwnd, UINT message, WPARAM wPara
 
 LRESULT CALLBACK WindowProcedureGameMenu(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    HDC hdc;
+    PAINTSTRUCT ps;
+
     HINSTANCE hinst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);
 
     switch (message) /* handle the messages */
@@ -468,6 +479,15 @@ LRESULT CALLBACK WindowProcedureGameMenu(HWND hwnd, UINT message, WPARAM wParam,
                       140, 380, 300, 60, hwnd, (HMENU)ID_RESTART, hinst, NULL);
         CreateWindowA("Button", "EXIT", WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_PUSHLIKE,
                       140, 490, 300, 60, hwnd, (HMENU)ID_EXIT1, hinst, NULL);
+        break;
+    }
+
+    case WM_PAINT: {
+        hdc = BeginPaint(hwnd, &ps);
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        drawSceneForStart(hdc, &rect, hbmGameMenuBackground);
+        EndPaint(hwnd, &ps);
         break;
     }
        case WM_COMMAND:
@@ -503,6 +523,8 @@ LRESULT CALLBACK WindowProcedureGameMenu(HWND hwnd, UINT message, WPARAM wParam,
 }
 LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {    
+    HDC hdc;
+    PAINTSTRUCT ps;
     switch (message) /* handle the messages */
     {
      
@@ -511,19 +533,19 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
         HINSTANCE hinst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);  
         HWND p1=CreateWindow("static",Player1, WS_CHILD | WS_VISIBLE | WS_BORDER
         |ES_CENTER,20,50 , 230, 30, hwnd, (HMENU)ID_P1, hinst, NULL);  
-        HWND p1Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        p1Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,270,50 ,40, 30, hwnd, (HMENU)ID_P1RESULT, hinst, NULL);    
         HWND p2=CreateWindow("static",Player2, WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,20,90 , 230, 30, hwnd, (HMENU)ID_P2, hinst, NULL);  
-        HWND p2Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        p2Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,270,90 ,40, 30, hwnd, (HMENU)ID_P2RESULT, hinst, NULL);    
         HWND p3=CreateWindow("static",Player3, WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,20,130 , 230, 30, hwnd, (HMENU)ID_P3, hinst, NULL);  
-        HWND p3Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        p3Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,270,130,40, 30, hwnd, (HMENU)ID_P3RESULT, hinst, NULL);    
         HWND p4=CreateWindow("static",Player4, WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,20,170 , 230, 30, hwnd, (HMENU)ID_P4, hinst, NULL);  
-          HWND p4Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        p4Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,270,170 ,40, 30, hwnd, (HMENU)ID_P4RESULT, hinst, NULL);    
         CreateWindow("button","DICE ROLLER", WS_CHILD | WS_VISIBLE | BS_CHECKBOX 
         | BS_PUSHLIKE,20,300 , 230, 60, hwnd, (HMENU)ID_DICE, hinst, NULL);  
@@ -547,6 +569,14 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
         SendMessage(p2Result, WM_SETFONT, (WPARAM)hf, TRUE); 
         SendMessage(p3Result, WM_SETFONT, (WPARAM)hf, TRUE); 
         SendMessage(p4Result, WM_SETFONT, (WPARAM)hf, TRUE); 
+        break;
+    }
+    case WM_PAINT:{
+        hdc = BeginPaint(hwnd, &ps);
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        drawSceneForMainResult(hdc, &rect, hbmMainResultBackground);
+        EndPaint(hwnd,&ps);
         break;
     }
    /* case WM_CTLCOLOREDIT:
@@ -581,6 +611,7 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
         {
         case ID_DICE:
         {
+            diceRoller();
             break;
         }
         case ID_GAMEMENU:{
@@ -606,6 +637,10 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
 
 LRESULT CALLBACK WindowProcedureFinalResult(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+
+    HDC hdc;
+    PAINTSTRUCT ps;
+
     switch (message) /* handle the messages */
     {
     case WM_CREATE:
@@ -652,6 +687,14 @@ LRESULT CALLBACK WindowProcedureFinalResult(HWND hwnd, UINT message, WPARAM wPar
         SendMessage(p3, WM_SETFONT, (WPARAM)hf, TRUE);  
         SendMessage(p4, WM_SETFONT, (WPARAM)hf, TRUE);  
         break;
+    }
+    case WM_PAINT: {
+        hdc = BeginPaint(hwnd, &ps);
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        drawSceneForMainResult(hdc, &rect, hbmMainResultBackground);
+        EndPaint(hwnd, &ps);
+        break
     }
      case WM_CTLCOLOREDIT:
     { 
@@ -749,6 +792,25 @@ bool initialize()
     return true;
 }
 
+bool reinitialize() {
+    pOnePawns.clear();
+    pTwoPawns.clear();
+    pThreePawns.clear();
+    pFourPawns.clear();
+    mapOfPlayerHomes = generatePlayerHomes(busyFields);
+    mapOfBoard = generateBoard();
+    players = loadGame(pOnePawns, pTwoPawns, pThreePawns, pFourPawns, mapOfPlayerHomes);
+    players.at(0).playerName = Player1;
+    players.at(1).playerName = Player2;
+    players.at(2).playerName = Player3;
+    players.at(3).playerName = Player4;
+    currentPlayerIndedx = 1;
+    currentDiceNumber = 1;
+    shouldPickPawn = false;
+
+    return true;
+}
+
 bool showStart() {
     HDC hdcStart = GetDC(startmenuHwnd);
     RECT rect1;
@@ -798,4 +860,28 @@ void nextPlayer() {
     } else {
         currentPlayerIndedx += 1;
     }
+}
+
+void diceRoller() {
+    if (!shouldPickPawn) {
+        currentDiceNumber = rollTheDice(players.at(currentPlayerIndedx-1));
+        vector<Pawn> pawns = players.at(currentPlayerIndedx-1).pawns;
+        bool rollAgain = true;
+        if(currentDiceNumber == 6) {
+            rollAgain = false;
+        }
+        for (Pawn pawn : pawns) {
+            if(pawn.currentPosition != 0 && !pawn.isFinished) rollAgain = false;
+        }
+        if (!rollAgain) {
+            shouldPickPawn = true;
+            char buf[5];
+            sprintf(buf, "Bacena je %d,Odaberi pijuna", currentDiceNumber);
+            MessageBox(mainGameHwnd,buf,"Kockica",MB_OK);
+            logg<<"\n";
+        } else {
+            MessageBox(mainGameHwnd,"Upps! nisi bacio sest, baci ponovno","Kockica",MB_OK);
+            updatePoints(players.at(currentPlayerIndedx-1),-10, p1Result, p2Result, p3Result, p4Result); 
+        }
+    }    
 }
