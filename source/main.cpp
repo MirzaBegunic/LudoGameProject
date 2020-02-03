@@ -43,6 +43,25 @@ HBITMAP hbmEnterNamesBackground;
 HBITMAP hbmGameMenuBackground;
 HBITMAP hbmMainResultBackground;
 HBITMAP hbmFinalResultBackground;
+
+HBITMAP hbmGreenPawn;
+HBITMAP hbmGreenPawnMask;
+HBITMAP hbmRedPawn;
+HBITMAP hbmRedPawnMask;
+HBITMAP hbmYellowPawn;
+HBITMAP hbmYellowPawnMask;
+HBITMAP hbmBluePawn;
+HBITMAP hbmBluewPawnMask;
+
+HBITMAP hbmGreenPawnSmall;
+HBITMAP hbmGreenPawnSmallMask;
+HBITMAP hbmRedPawnSmall;
+HBITMAP hbmRedPawnSmallMask;
+HBITMAP hbmYellowPawnSmall;
+HBITMAP hbmYellowPawnSmallMask;
+HBITMAP hbmBluePawnSmall;
+HBITMAP hbmBluewPawnSmallMask;
+
 HBRUSH hbrushEditBox = 0;
 COLORREF blue=RGB(0,0,255);
 COLORREF red=RGB(255,0,0);
@@ -207,8 +226,9 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
             HDC hdc = GetDC(mainGameHwnd);
             RECT rect;
             GetClientRect(mainGameHwnd, &rect);
-            drawScene(hdc, &rect,hbmBackground, hbmBoardMask, hbmBoard);
+            //drawScene(hdc, &rect,hbmBackground, hbmBoardMask, hbmBoard);
             //testPawn(hdc, players);
+            drawScene(hdc, &rect);
             ReleaseDC(mainGameHwnd, hdc);
             while ((GetTickCount() - time_start) < pause)
             {
@@ -791,6 +811,24 @@ void loadResources()
     hbmGameMenuBackground = (HBITMAP)LoadImage(NULL, "resources/gamemenu.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hbmMainResultBackground= (HBITMAP)LoadImage(NULL, "resources/resultbackground.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hbmFinalResultBackground = (HBITMAP)LoadImage(NULL, "resources/finalresultbackground.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+
+    hbmGreenPawn = (HBITMAP)LoadImage(NULL, "resources/green_black54.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmGreenPawnMask = (HBITMAP)LoadImage(NULL, "resources/green_white54.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmRedPawn = (HBITMAP)LoadImage(NULL, "resources/red_black54.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmRedPawnMask = (HBITMAP)LoadImage(NULL, "resources/red_white54.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmYellowPawn = (HBITMAP)LoadImage(NULL, "resources/yellow_black54.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmYellowPawnMask = (HBITMAP)LoadImage(NULL, "resources/yellow_white54.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmBluePawn = (HBITMAP)LoadImage(NULL, "resources/blue_black54.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmBluewPawnMask = (HBITMAP)LoadImage(NULL, "resources/blue_white54.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+
+    hbmGreenPawnSmall = (HBITMAP)LoadImage(NULL, "resources/green_black27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmGreenPawnSmallMask = (HBITMAP)LoadImage(NULL, "resources/green_white27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmRedPawnSmall = (HBITMAP)LoadImage(NULL, "resources/red_black27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmRedPawnSmallMask = (HBITMAP)LoadImage(NULL, "resources/red_white27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmYellowPawnSmall = (HBITMAP)LoadImage(NULL, "resources/yellow_black27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmYellowPawnSmallMask = (HBITMAP)LoadImage(NULL, "resources/yellow_white27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmBluePawnSmall = (HBITMAP)LoadImage(NULL, "resources/blue_black27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmBluewPawnSmallMask = (HBITMAP)LoadImage(NULL, "resources/blue_white27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 }
 
 bool initialize()
@@ -936,4 +974,91 @@ void endGame() {
     setEndText(sortedPlayers.at(3),p4,p4Points,p4Pawns);
     ShowWindow(finalResultHwnd, SW_SHOW);
     showFinalResult();
+}
+
+void drawPawn(HDC& hdcBuffer, HDC& hdcMem, int index, int xPos, int yPos) {
+    switch (index)
+    {
+    case 1:{
+        (HBITMAP) SelectObject(hdcMem, hbmYellowPawnMask);
+        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+            0, 0, SRCAND);
+
+        (HBITMAP) SelectObject(hdcMem, hbmYellowPawn);
+        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+            0, 0, SRCPAINT);
+        break;
+    }
+    case 2:{
+        (HBITMAP) SelectObject(hdcMem, hbmBluewPawnMask);
+        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+            0, 0, SRCAND);
+
+        (HBITMAP) SelectObject(hdcMem, hbmBluePawn);
+        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+            0, 0, SRCPAINT);
+        break;
+    }
+    case 3:{
+        (HBITMAP) SelectObject(hdcMem, hbmRedPawnMask);
+        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+            0, 0, SRCAND);
+
+        (HBITMAP) SelectObject(hdcMem, hbmRedPawn);
+        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+            0, 0, SRCPAINT);
+        break;
+    }
+    case 4:{
+        (HBITMAP) SelectObject(hdcMem, hbmGreenPawnMask);
+        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+            0, 0, SRCAND);
+
+        (HBITMAP) SelectObject(hdcMem, hbmGreenPawn);
+        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+            0, 0, SRCPAINT);
+        break;
+    }
+    
+    default:
+        break;
+    }
+}
+
+void drawScene(HDC hdc, RECT* rect) {
+
+    HDC hdcBuffer = CreateCompatibleDC(hdc);
+    HBITMAP hbmBuffer = CreateCompatibleBitmap(hdc, rect->right, rect->bottom);
+    HBITMAP oldHbmBuffer = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
+
+    HDC hdcMem = CreateCompatibleDC(hdc);
+
+    HBITMAP hbmOld = (HBITMAP)SelectObject(hdcMem, hbmBackground);
+    BitBlt(hdcBuffer, 0, 0, 1000, 1024, hdcMem, 0, 0,
+           SRCCOPY);
+
+    (HBITMAP) SelectObject(hdcMem, hbmBoardMask);
+    BitBlt(hdcBuffer, 0, 0, 1024, 1024, hdcMem,
+           0, 0, SRCAND);
+
+    (HBITMAP) SelectObject(hdcMem, hbmBoard);
+    BitBlt(hdcBuffer, 0, 0, 1024, 1024, hdcMem,
+           0, 0, SRCPAINT);
+
+    for(Player player : players) {
+        std::vector<Pawn> pawns = player.pawns;
+        for(Pawn pawn : pawns) {
+            drawPawn(hdcBuffer, hdcMem, player.playerIndex, pawn.xPos, pawn.yPos);
+        }
+    }
+
+    SelectObject(hdcMem, hbmOld);
+    DeleteDC(hdcMem);
+
+    BitBlt(hdc, 0, 0, rect->right, rect->bottom, hdcBuffer, 0, 0, SRCCOPY);
+
+    SelectObject(hdcBuffer, oldHbmBuffer);
+    DeleteDC(hdcBuffer);
+    DeleteObject(hbmBuffer);
+
 }
