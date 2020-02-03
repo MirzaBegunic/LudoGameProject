@@ -657,33 +657,49 @@ LRESULT CALLBACK WindowProcedureFinalResult(HWND hwnd, UINT message, WPARAM wPar
     {
         HINSTANCE hinst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);
         CreateWindowA("Button", "EXIT", WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_PUSHLIKE,
-                      80, 650, 250, 60, hwnd, (HMENU)ID_EXITFINAL, hinst, NULL);
+                      80, 680, 230, 60, hwnd, (HMENU)ID_EXITFINAL, hinst, NULL);
         CreateWindowA("Button", "RESTART", WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_PUSHLIKE,
-                      80,720, 250, 60, hwnd, (HMENU)ID_RESTARTFINAL, hinst, NULL);
+                      80,750, 230, 60, hwnd, (HMENU)ID_RESTARTFINAL, hinst, NULL);
         p1=CreateWindow("static","Player1", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,50 , 230, 30, hwnd, (HMENU)ID_P1, hinst, NULL);  
+        |ES_CENTER,80,160 , 230, 30, hwnd, (HMENU)ID_P1, hinst, NULL);  
+        CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        |ES_CENTER,80,200, 90, 30, hwnd, (HMENU)9, hinst, NULL);  
         p1Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,90 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
+        |ES_CENTER,210,200, 100, 30, hwnd, (HMENU)1, hinst, NULL);  
+        CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        |ES_CENTER,80,240, 90, 30, hwnd, (HMENU)9, hinst, NULL);  
         p1Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,130 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
+        |ES_CENTER,210,240 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
         p2=CreateWindow("static","Player2", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,180 , 230, 30, hwnd, (HMENU)ID_P2, hinst, NULL);  
+        |ES_CENTER,80,280 , 230, 30, hwnd, (HMENU)ID_P2, hinst, NULL);  
+         CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        |ES_CENTER,80,320, 90, 30, hwnd, (HMENU)9, hinst, NULL);   
         p2Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,220 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
+        |ES_CENTER,210,320 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
+        CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        |ES_CENTER,80,360, 90, 30, hwnd, (HMENU)9, hinst, NULL);  
         p2Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,260 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
+        |ES_CENTER,210,360 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
         p3=CreateWindow("static","Player3", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,300 , 230, 30, hwnd, (HMENU)ID_P3, hinst, NULL);  
+        |ES_CENTER,80,400 , 230, 30, hwnd, (HMENU)ID_P3, hinst, NULL); 
+         CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        |ES_CENTER,80,440, 90, 30, hwnd, (HMENU)9, hinst, NULL);    
         p3Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,340 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
+        |ES_CENTER,210,440 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
+        CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        |ES_CENTER,80,480, 90, 30, hwnd, (HMENU)9, hinst, NULL);  
         p3Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,380 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
+        |ES_CENTER,210,480 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
         p4=CreateWindow("static","Player4", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,430 , 230, 30, hwnd, (HMENU)ID_P4, hinst, NULL);  
+        |ES_CENTER,80,520 , 230, 30, hwnd, (HMENU)ID_P4, hinst, NULL);  
+         CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        |ES_CENTER,80,560, 90, 30, hwnd, (HMENU)9, hinst, NULL);    
         p4Points=CreateWindow("static","Points:", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,470 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
+        |ES_CENTER,210,560 , 100, 30, hwnd, (HMENU)1, hinst, NULL);  
         p4Pawns=CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,510 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
+        |ES_CENTER,210,600 , 100, 30, hwnd, (HMENU)2, hinst, NULL);  
+        CreateWindow("static","Pawns eaten:", WS_CHILD | WS_VISIBLE | WS_BORDER
+        |ES_CENTER,80,600, 90, 30, hwnd, (HMENU)9, hinst, NULL);  
         HFONT hf;
         HDC hdc;
         long lfHeight;
