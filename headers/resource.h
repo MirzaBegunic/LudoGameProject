@@ -26,6 +26,7 @@
 #define ID_GAMEMENU                             124
 #define ID_EXITFINAL                            125
 #define ID_RESTARTFINAL                         126
+#define ID_SKIP                                 127 
 #define ID_START                                40001
 #define ID_LUDO                                 40002
 #define ID_CREDITS                              40003

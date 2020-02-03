@@ -365,13 +365,13 @@ LRESULT CALLBACK WindowProcedureEnterNames(HWND hwnd, UINT message, WPARAM wPara
     {  
         if(GetDlgCtrlID((HWND)lParam) == ID_PLAYER1){
         HDC hdcEdit = (HDC)wParam; 
-        SetTextColor(hdcEdit, blue); 
+        SetTextColor(hdcEdit, yellow); 
         SetBkMode(hdcEdit, TRANSPARENT);
         return (LONG)hbrushEditBox; 
         } 
         if(GetDlgCtrlID((HWND)lParam) == ID_PLAYER2){
         HDC hdcEdit = (HDC)wParam; 
-        SetTextColor(hdcEdit, green); 
+        SetTextColor(hdcEdit, blue); 
         return (LONG)hbrushEditBox; 
         }
         if(GetDlgCtrlID((HWND)lParam) == ID_PLAYER3){
@@ -381,7 +381,7 @@ LRESULT CALLBACK WindowProcedureEnterNames(HWND hwnd, UINT message, WPARAM wPara
         }
         if(GetDlgCtrlID((HWND)lParam) == ID_PLAYER4){
         HDC hdcEdit = (HDC)wParam; 
-        SetTextColor(hdcEdit, yellow); 
+        SetTextColor(hdcEdit, green); 
         return (LONG)hbrushEditBox; 
         }
 
@@ -510,32 +510,34 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
     {  
         HINSTANCE hinst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);  
         HWND p1=CreateWindow("static",Player1, WS_CHILD | WS_VISIBLE | WS_BORDER
-        |ES_CENTER,20,50 , 230, 30, hwnd, (HMENU)ID_P1, hinst, NULL);  
-        HWND p1Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
-        |ES_CENTER,270,50 ,40, 30, hwnd, (HMENU)ID_P1RESULT, hinst, NULL);    
+        |ES_CENTER,140,310 , 230, 30, hwnd, (HMENU)ID_P1, hinst, NULL);  
+        HWND p1Result=CreateWindow("static","000000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        |ES_CENTER,450,310 ,80,30, hwnd, (HMENU)ID_P1RESULT, hinst, NULL);    
         HWND p2=CreateWindow("static",Player2, WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
-        |ES_CENTER,20,90 , 230, 30, hwnd, (HMENU)ID_P2, hinst, NULL);  
-        HWND p2Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
-        |ES_CENTER,270,90 ,40, 30, hwnd, (HMENU)ID_P2RESULT, hinst, NULL);    
+        |ES_CENTER,140,410 , 230, 30, hwnd, (HMENU)ID_P2, hinst, NULL);  
+        HWND p2Result=CreateWindow("static","000000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        |ES_CENTER,450,410 ,80, 30, hwnd, (HMENU)ID_P2RESULT, hinst, NULL);    
         HWND p3=CreateWindow("static",Player3, WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
-        |ES_CENTER,20,130 , 230, 30, hwnd, (HMENU)ID_P3, hinst, NULL);  
-        HWND p3Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
-        |ES_CENTER,270,130,40, 30, hwnd, (HMENU)ID_P3RESULT, hinst, NULL);    
+        |ES_CENTER,140,510 , 230, 30, hwnd, (HMENU)ID_P3, hinst, NULL);  
+        HWND p3Result=CreateWindow("static","000000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        |ES_CENTER,450,510,80, 30, hwnd, (HMENU)ID_P3RESULT, hinst, NULL);    
         HWND p4=CreateWindow("static",Player4, WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
-        |ES_CENTER,20,170 , 230, 30, hwnd, (HMENU)ID_P4, hinst, NULL);  
-          HWND p4Result=CreateWindow("static","000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
-        |ES_CENTER,270,170 ,40, 30, hwnd, (HMENU)ID_P4RESULT, hinst, NULL);    
+        |ES_CENTER,140,610 , 230, 30, hwnd, (HMENU)ID_P4, hinst, NULL);  
+        HWND p4Result=CreateWindow("static","000000", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
+        |ES_CENTER,450,610 ,80, 30, hwnd, (HMENU)ID_P4RESULT, hinst, NULL);    
         CreateWindow("button","DICE ROLLER", WS_CHILD | WS_VISIBLE | BS_CHECKBOX 
-        | BS_PUSHLIKE,20,300 , 230, 60, hwnd, (HMENU)ID_DICE, hinst, NULL);  
+        | BS_PUSHLIKE,140,700 , 230, 80, hwnd, (HMENU)ID_DICE, hinst, NULL);  
+        CreateWindow("button","SKIP", WS_CHILD | WS_VISIBLE | BS_CHECKBOX 
+        | BS_PUSHLIKE,140,800 , 230, 80, hwnd, (HMENU)ID_SKIP, hinst, NULL); 
          CreateWindow("button","OPEN MENU", WS_CHILD | WS_VISIBLE | BS_CHECKBOX 
-        | BS_PUSHLIKE,20,390 , 230, 60, hwnd, (HMENU)ID_GAMEMENU, hinst, NULL); 
+        | BS_PUSHLIKE,140,900 , 230, 80, hwnd, (HMENU)ID_GAMEMENU, hinst, NULL); 
         blue=COLORREF(RGB(0,0,255));
 
         HFONT hf;
         HDC hdc;
         long lfHeight;
          hdc = GetDC(NULL);
-        lfHeight = -MulDiv(16, GetDeviceCaps(hdc, LOGPIXELSY), 72);
+        lfHeight = -MulDiv(18, GetDeviceCaps(hdc, LOGPIXELSY), 72);
         ReleaseDC(NULL, hdc);
 
         hf = CreateFont(lfHeight, 0, 0, 0, 0, TRUE, 0, 0, 0, 0, 0, 0, 0, "Times New Roman");
@@ -588,6 +590,9 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
             ShowWindow(gameMenuHwnd, SW_SHOW);
             showGameMenu();
             //break;
+        }
+        case ID_SKIP:{
+            //Skip player
         }
      }
         return 0;
@@ -717,10 +722,10 @@ bool createMainResult(){
         mainResultClassName,
         _T("Result"),
         DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION|WS_VISIBLE|WS_GROUP | WS_TABSTOP | WS_POPUP ,
-        clientrect.right+110,
-        clientrect.top+80,
-        400,
-        950,
+        clientrect.right+105,
+        clientrect.top+10,
+        600,
+        1021,
         HWND_DESKTOP,
         NULL,
         (HINSTANCE)GetWindowLong(mainGameHwnd,GWLP_HINSTANCE),

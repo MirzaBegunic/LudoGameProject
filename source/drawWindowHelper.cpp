@@ -67,7 +67,7 @@ void drawSceneForMainResult(HDC hdc, RECT *rect, HBITMAP hbmBackground)
     HBITMAP oldHbmBuffer = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
     HDC hdcMem = CreateCompatibleDC(hdc);
     HBITMAP hbmOld = (HBITMAP)SelectObject(hdcMem, hbmBackground);
-    BitBlt(hdcBuffer, 0, 0, 400, 920, hdcMem, 0, 0, SRCCOPY);
+    BitBlt(hdcBuffer, 0, 0, 600, 1021, hdcMem, 0, 0, SRCCOPY);
     SelectObject(hdcMem, hbmOld);
     DeleteDC(hdcMem);
     BitBlt(hdc, 0, 0, rect->right, rect->bottom, hdcBuffer, 0, 0, SRCCOPY);
