@@ -9,16 +9,25 @@
 void loadResources();
 void drawScene(HDC, RECT *, HBITMAP, HBITMAP, HBITMAP);
 void drawSceneForStart(HDC, RECT *, HBITMAP);
+void drawSceneForMainResult(HDC, RECT *, HBITMAP);
+bool createMainResult();
+bool createGameMenu();
 bool showStart();
-
+bool showFinalResult();
+bool showEnterNames();
+bool showGameMenu();
+bool showMainResult();
 bool initialize();
 void nextPlayer();
 
+LRESULT CALLBACK WindowProcedureFinalResult(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK WindowProcedureMainResult(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK WindowProcedureGameMenu(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK WindowProcedureEnterNames(HWND, UINT, WPARAM, LPARAM);
 void testFields(HDC hdc, std::map<int, BoardField>& mapOfBoard, std::map<int, std::map<int, BoardField>>& mapOfPlayerHomes);
 void testPawn(HDC hdc, std::vector<Player> players);
 
 LRESULT CALLBACK WindowProcedureStart(HWND, UINT, WPARAM, LPARAM);
-
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 
 int registerWindowWithCustomIcon(TCHAR szClassName[],

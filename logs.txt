@@ -1,13 +1,4 @@
-
-150 150
-320 150
-150 320
-curr pos 0
-Updated pos 15
-Updated pos in player15
-x and ylon 80:450
-
-curr pos 15
-Updated pos 18
-Updated pos in player18
-x and ylon 264:450
+696:132
+696:132
+696:132
+887:22
