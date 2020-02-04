@@ -19,6 +19,7 @@
             "args": [
                 "source/*.cpp",
                 "-mwindows",
+                "-lwinmm",
                 "-o LudoGame",
                 " windowsresources.o"
             ],

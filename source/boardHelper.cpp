@@ -160,7 +160,7 @@ std::map<int,BoardField> generateBoard() {
     return positionMap;
 }
 
-std::map<int, BoardField> generateHome(int startX, int startY, std::list<BoardField> & bF) {
+std::map<int, BoardField> generateHome(int startX, int startY) {
     BoardField bf;
 
     std::map<int, BoardField> player;
@@ -168,29 +168,25 @@ std::map<int, BoardField> generateHome(int startX, int startY, std::list<BoardFi
     bf.yPos = startY;
     generateBounds(bf);
     player[1] = bf;
-    bF.push_front(player[1]);
     bf.xPos = bf.xPos + 170;
     generateBounds(bf);
     player[2] = bf;
-    bF.push_front(player[2]);
     bf.yPos = bf.yPos + 170;
     generateBounds(bf);
     player[4] = bf;
-    bF.push_front(player[4]);
     bf.xPos = bf.xPos - 170;
     generateBounds(bf);
     player[3] = bf;
-    bF.push_front(player[3]);
     return player;
 }
 
-std::map<int, std::map<int, BoardField>> generatePlayerHomes(std::list<BoardField> & bF) {
+std::map<int, std::map<int, BoardField>> generatePlayerHomes() {
     std::map<int, std::map<int, BoardField>> playerHomes;
 
-    playerHomes[1] = generateHome(150, 150, bF);
-    playerHomes[2] = generateHome(710, 150, bF);
-    playerHomes[3] = generateHome(710, 710, bF);
-    playerHomes[4] = generateHome(150, 710, bF);
+    playerHomes[1] = generateHome(150, 150);
+    playerHomes[2] = generateHome(710, 150);
+    playerHomes[3] = generateHome(710, 710);
+    playerHomes[4] = generateHome(150, 710);
 
     return playerHomes;
 }

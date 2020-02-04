@@ -16,6 +16,13 @@
 #include "../headers/mainFunc.hpp"
 #include "../headers/player.hpp"
 
+void testDice(HDC hdc, std::map<int, BoardField> dice) {
+    for (int i=1;i<=4;++i) {
+        BoardField bf = dice[i];
+        Rectangle(hdc, bf.xPos - 5, bf.yPos -5, bf.xPos +5, bf.yPos +5);
+    }
+}
+
 void testFields(HDC hdc, std::map<int, BoardField>& mapOfBoard, std::map<int, std::map<int, BoardField>>& mapOfPlayerHomes)
 {
     for (int i = 1; i <= 4; ++i)

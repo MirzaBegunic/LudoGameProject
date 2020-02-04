@@ -18,7 +18,7 @@ bool showGameMenu();
 bool showMainResult();
 bool initialize();
 void nextPlayer();
-void diceRoller();
+void diceRoller(int num);
 bool reinitialize();
 void endGame();
 void drawScene(HDC hdc, RECT * rect);

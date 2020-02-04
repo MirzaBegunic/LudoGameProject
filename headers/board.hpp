@@ -21,7 +21,7 @@ struct Board{
 };
 
 std::map<int,BoardField> generateBoard();
-std::map<int,std::map<int,BoardField>> generatePlayerHomes(std::list<BoardField> &);
+std::map<int,std::map<int,BoardField>> generatePlayerHomes();
 
 
 #endif

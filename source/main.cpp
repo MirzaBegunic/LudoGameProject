@@ -34,7 +34,6 @@ ofstream logg;
 
 
 BITMAP bmpBoard;
-
 HBITMAP hbmBackground;
 HBITMAP hbmBoard;
 HBITMAP hbmBoardMask;
@@ -62,6 +61,9 @@ HBITMAP hbmYellowPawnSmallMask;
 HBITMAP hbmBluePawnSmall;
 HBITMAP hbmBluewPawnSmallMask;
 
+HBITMAP hbmDiceMask;
+HBITMAP hbmDice;
+
 COLORREF blue=RGB(13,71,161);
 COLORREF red=RGB(183,28,28);
 COLORREF green=RGB(27,94,32);
@@ -74,7 +76,7 @@ COLORREF yellow=RGB(253,216,53);
 HWND mainGameHwnd, startmenuHwnd,enterNamesHwnd,gameMenuHwnd,mainResultHwnd,finalResultHwnd;
 HWND p1Result, p2Result, p3Result, p4Result;
 HWND p1,p1Points,p1Pawns,p2,p2Points,p2Pawns,p3,p3Points,p3Pawns,p4,p4Points,p4Pawns;
-
+HWND muteButton;
 std::map<int, std::map<int, BoardField>> mapOfPlayerHomes;
 std::map<int, BoardField> mapOfBoard;
 std::vector<Player> players;
@@ -82,8 +84,9 @@ std::vector<Pawn> pOnePawns;
 std::vector<Pawn> pTwoPawns;
 std::vector<Pawn> pFourPawns;
 std::vector<Pawn> pThreePawns;
-std::list<BoardField> busyFields;
+std::map<int, std::vector<unsigned int>> busyFields;
 std::vector<bool> playersDone;
+std::map<int, BoardField> mapOfDices;
 
 char Player1[40];
 char Player2[40];
@@ -92,6 +95,10 @@ char Player4[40];
 int currentPlayerIndedx = 1;
 int currentDiceNumber = 1;
 bool shouldPickPawn = false;
+bool diceIsRolling = false;
+int diceAnimPos = 0;
+int diceAnim = 0;
+bool muted = false;
 
 TCHAR szClassName[] = _T("LudoGameApp");
 TCHAR startClassName[] = _T("Start");
@@ -191,7 +198,7 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
         0,
         FinalResultClassName,
         _T("Final Result"),
-        DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION|WS_VISIBLE | WS_GROUP | WS_TABSTOP | WS_POPUP | WS_SYSMENU,
+        DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION|WS_VISIBLE | WS_GROUP | WS_TABSTOP | WS_POPUP ,
         500,
         20,
         400,
@@ -225,8 +232,6 @@ int WINAPI WinMain(HINSTANCE hThisInstance,
             HDC hdc = GetDC(mainGameHwnd);
             RECT rect;
             GetClientRect(mainGameHwnd, &rect);
-            //drawScene(hdc, &rect,hbmBackground, hbmBoardMask, hbmBoard);
-            //testPawn(hdc, players);
             drawScene(hdc, &rect);
             ReleaseDC(mainGameHwnd, hdc);
             while ((GetTickCount() - time_start) < pause)
@@ -260,10 +265,12 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             int x = LOWORD(lParam);
             int y = HIWORD(lParam);
             if (pawnSelection(logg,players.at(currentPlayerIndedx-1), x, y,mapOfPlayerHomes, mapOfBoard)) {
-                if(calculatePlayerMove(players.at(currentPlayerIndedx-1), mapOfBoard, logg, p1Result, p2Result, p3Result, p4Result, playersDone)){
+                if(calculatePlayerMove(players.at(currentPlayerIndedx-1), mapOfBoard, logg, p1Result, p2Result, p3Result, p4Result, playersDone,busyFields)){
                     shouldPickPawn = false;
-                    if(checkIfPawnsShouldBeEaten(players, players.at(currentPlayerIndedx-1), mapOfPlayerHomes, p1Result, p2Result, p3Result, p4Result, playersDone))
-                        MessageBox(mainGameHwnd, "This Guy FUCKS","Ouuu", MB_OKCANCEL);
+                    if(checkIfPawnsShouldBeEaten(players, players.at(currentPlayerIndedx-1), mapOfPlayerHomes, p1Result, p2Result, p3Result, p4Result, playersDone, busyFields)){
+                        if(!muted) PlaySound("resources/PawnEaten.wav",NULL, SND_FILENAME | SND_ASYNC);
+                        MessageBox(mainGameHwnd, "+200 Points","Woaaah", MB_OK);
+                    }
                     if (currentDiceNumber != 6) {
                         nextPlayer();
                     }
@@ -277,20 +284,53 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                         endGame();
                     }
                 } else {
-                    MessageBox(mainGameHwnd, "Pijun se ne moze pomjeriti","Error", MB_OKCANCEL);
+                    MessageBox(mainGameHwnd, "You need to skip this round","Skip It", MB_OK);
                 }
             } else {
-                MessageBox(mainGameHwnd, "Los odabir","Fail", MB_OKCANCEL);
-
+                    if(!muted) PlaySound("resources/WrongPick.wav",NULL, SND_FILENAME | SND_ASYNC);
+                    MessageBox(mainGameHwnd, "Can't touch this","Nope", MB_OK);
             }
         } else {
-            MessageBox(mainGameHwnd, "Prvo bacit kockicu","Fail", MB_OKCANCEL);
+            MessageBox(mainGameHwnd, "You need to rool the dice, or skip... Your call","Hold on", MB_OK);
         }
         break;
     }    
 
-    case WM_RBUTTONDOWN: {
-        endGame();
+    case WM_KEYDOWN: {
+        switch (wParam)
+        {
+        case VK_ESCAPE:
+            endGame();
+            break;
+        
+        case VK_F6:
+            diceRoller(6);
+            break;
+
+            
+        case VK_F5:
+            diceRoller(5);
+            break;
+
+        case VK_F4:
+            diceRoller(4);
+            break;
+
+        case VK_F3:
+            diceRoller(3);
+            break;            
+        
+        case VK_F2:
+            diceRoller(2);
+            break;
+
+        case VK_F1:
+            diceRoller(1);
+            break;            
+
+        default:
+            break;
+        }
         break;
     }
 
@@ -497,8 +537,14 @@ LRESULT CALLBACK WindowProcedureGameMenu(HWND hwnd, UINT message, WPARAM wParam,
     {
     case WM_CREATE:
     {   HINSTANCE hinst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);
-        CreateWindowA("Button", "MUTE", WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_PUSHLIKE,
-                      140, 270, 300, 60, hwnd, (HMENU)ID_MUTE, hinst, NULL);
+        if(muted) {
+            muteButton = CreateWindowA("Button", "UNMUTE", WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_PUSHLIKE,
+                        140, 270, 300, 60, hwnd, (HMENU)ID_MUTE, hinst, NULL);
+        } else {
+            muteButton = CreateWindowA("Button", "MUTE", WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_PUSHLIKE,
+                        140, 270, 300, 60, hwnd, (HMENU)ID_MUTE, hinst, NULL);
+        }
+
         CreateWindowA("Button", "RESTART", WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_PUSHLIKE,
                       140, 380, 300, 60, hwnd, (HMENU)ID_RESTART, hinst, NULL);
         CreateWindowA("Button", "EXIT", WS_CHILD | WS_VISIBLE | BS_CHECKBOX | BS_PUSHLIKE,
@@ -525,20 +571,27 @@ LRESULT CALLBACK WindowProcedureGameMenu(HWND hwnd, UINT message, WPARAM wParam,
         }
         case ID_MUTE:
         {
-            //Mute 
+            if(muted){
+                SendMessage(muteButton, WM_SETTEXT, 0, (LPARAM) _T("MUTE"));
+                muted = false;
+            } else {
+                SendMessage(muteButton, WM_SETTEXT, 0, (LPARAM) _T("UNMUTE"));
+                muted = true;
+            }
+
             break;
         }
         case ID_EXIT1:
         {
-            ShowWindow(hwnd,SW_HIDE);
+            PostQuitMessage(0);
+            break;
         }
      }
         return 0;
         }
     case WM_DESTROY:
         logg.close();
-         ShowWindow(gameMenuHwnd, SW_HIDE);
-      //  PostQuitMessage(0); /* send a WM_QUIT to the message queue */
+        ShowWindow(gameMenuHwnd, SW_HIDE);
         break;
     default: /* for messages that we don't deal with */
         return DefWindowProc(hwnd, message, wParam, lParam);
@@ -578,7 +631,7 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
         |ES_CENTER,140,610 , 230, 30, hwnd, (HMENU)ID_P4, hinst, NULL);  
         p4Result=CreateWindow("static","0", WS_CHILD | WS_VISIBLE | WS_BORDER|ES_AUTOHSCROLL
         |ES_CENTER,450,610 ,80, 30, hwnd, (HMENU)ID_P4RESULT, hinst, NULL);    
-        CreateWindow("button","DICE ROLLER", WS_CHILD | WS_VISIBLE | BS_CHECKBOX 
+        CreateWindow("button","ROLL DICE", WS_CHILD | WS_VISIBLE | BS_CHECKBOX 
         | BS_PUSHLIKE,140,700 , 230, 80, hwnd, (HMENU)ID_DICE, hinst, NULL);  
         CreateWindow("button","SKIP", WS_CHILD | WS_VISIBLE | BS_CHECKBOX 
         | BS_PUSHLIKE,140,800 , 230, 80, hwnd, (HMENU)ID_SKIP, hinst, NULL); 
@@ -671,7 +724,7 @@ LRESULT CALLBACK WindowProcedureMainResult(HWND hwnd, UINT message, WPARAM wPara
         {
         case ID_DICE:
         {
-            diceRoller();
+            diceRoller(0);
             break;
         }
         case ID_GAMEMENU:{
@@ -794,6 +847,10 @@ LRESULT CALLBACK WindowProcedureFinalResult(HWND hwnd, UINT message, WPARAM wPar
         case ID_RESTARTFINAL:
         
         {   
+            reinitialize();
+            ShowWindow(finalResultHwnd,SW_HIDE);
+            ShowWindow(mainGameHwnd, SW_SHOW);
+            ShowWindow(mainResultHwnd, SW_SHOW);
             break;
         }
         case ID_EXITFINAL:
@@ -879,16 +936,39 @@ void loadResources()
     hbmYellowPawnSmallMask = (HBITMAP)LoadImage(NULL, "resources/yellow_white27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hbmBluePawnSmall = (HBITMAP)LoadImage(NULL, "resources/blue_black27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hbmBluewPawnSmallMask = (HBITMAP)LoadImage(NULL, "resources/blue_white27.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+
+    hbmDiceMask = (HBITMAP)LoadImage(NULL, "resources/dice_white.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hbmDice = (HBITMAP)LoadImage(NULL, "resources/dice_black.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 }
 
 bool initialize()
 {
     loadResources();
-    mapOfPlayerHomes = generatePlayerHomes(busyFields);
+    mapOfPlayerHomes = generatePlayerHomes();
     mapOfBoard = generateBoard();
     players = loadGame(pOnePawns, pTwoPawns, pThreePawns, pFourPawns, mapOfPlayerHomes);
     for(int i=0; i<4; ++i) {
         playersDone.push_back(false);
+    }
+    vector<unsigned int> tmp;
+    for(int i=0;i<4;++i){
+        tmp.push_back(0);
+    }
+    for(int i=1;i<=81;++i) {
+        busyFields[i] = tmp;
+    }
+    for(int i = 1; i<=4; ++i) {
+        map<int,BoardField> mapBf = mapOfPlayerHomes[i];
+        BoardField bf1 = mapBf[1];
+        BoardField bf2 = mapBf[2];
+        BoardField bf3 = mapBf[3];
+        BoardField bf4 = mapBf[4];
+        int xPos = (bf1.xPos + bf2.xPos)/2;
+        int yPos = (bf1.yPos + bf3.yPos)/2;
+        BoardField bf;
+        bf.xPos = xPos;
+        bf.yPos = yPos;
+        mapOfDices[i] = bf;
     }
     return true;
 }
@@ -914,6 +994,14 @@ bool reinitialize() {
     playersDone.clear();
     for(int i=0; i<4; ++i) {
         playersDone.push_back(false);
+    }
+    busyFields.clear();
+    vector<unsigned int> tmp;
+    for(int i=0;i<4;++i){
+        tmp.push_back(0);
+    }
+    for(int i=1;i<=81;++i) {
+        busyFields[i] = tmp;
     }
 
     return true;
@@ -968,11 +1056,13 @@ void nextPlayer() {
     } else {
         currentPlayerIndedx += 1;
     }
+    if(playersDone.at(currentPlayerIndedx-1)) nextPlayer();
 }
 
-void diceRoller() {
+void diceRoller(int num) {
     if (!shouldPickPawn) {
-        currentDiceNumber = rollTheDice(players.at(currentPlayerIndedx-1));
+        currentDiceNumber = rollTheDice(players.at(currentPlayerIndedx-1), num);
+        diceIsRolling = true;
         vector<Pawn> pawns = players.at(currentPlayerIndedx-1).pawns;
         bool rollAgain = true;
         if(currentDiceNumber == 6) {
@@ -983,12 +1073,11 @@ void diceRoller() {
         }
         if (!rollAgain) {
             shouldPickPawn = true;
-            char buf[5];
-            sprintf(buf, "Bacena je %d,Odaberi pijuna", currentDiceNumber);
-            MessageBox(mainGameHwnd,buf,"Kockica",MB_OK);
-            logg<<"\n";
+            if(currentDiceNumber == 6) {
+                if(!muted) PlaySound("resources/RolledSix.wav",NULL,SND_FILENAME | SND_ASYNC);
+            }
         } else {
-            MessageBox(mainGameHwnd,"Upps! nisi bacio sest, baci ponovno","Kockica",MB_OK);
+            if(!muted) PlaySound("resources/LooserSound.wav",NULL,SND_FILENAME | SND_ASYNC);
             updatePoints(players.at(currentPlayerIndedx-1),-10, p1Result, p2Result, p3Result, p4Result); 
         }
     }    
@@ -1014,8 +1103,9 @@ void setEndText(PlayerForSort player, HWND& p, HWND& pPoint, HWND& pPawn) {
 }
 
 void endGame() {
-    CloseWindow(mainGameHwnd);
-    CloseWindow(mainResultHwnd);
+    PlaySound("resources/EndGame.wav",NULL, SND_FILENAME | SND_ASYNC);
+    ShowWindow(mainGameHwnd, SW_HIDE);
+    ShowWindow(mainResultHwnd, SW_HIDE);
     std::vector<PlayerForSort> sortedPlayers;
     for(Player player : players) {
         PlayerForSort ps;
@@ -1033,53 +1123,157 @@ void endGame() {
     showFinalResult();
 }
 
-void drawPawn(HDC& hdcBuffer, HDC& hdcMem, int index, int xPos, int yPos) {
+void drawPawn(HDC& hdcBuffer, HDC& hdcMem, int index, int xPos, int yPos, bool drawSmall) {
     switch (index)
     {
     case 1:{
-        (HBITMAP) SelectObject(hdcMem, hbmYellowPawnMask);
-        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
-            0, 0, SRCAND);
+        if(drawSmall) {
+            (HBITMAP) SelectObject(hdcMem, hbmYellowPawnSmallMask);
+            BitBlt(hdcBuffer, xPos-27, yPos-27, 27, 27, hdcMem,
+                0, 0, SRCAND);
 
-        (HBITMAP) SelectObject(hdcMem, hbmYellowPawn);
-        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
-            0, 0, SRCPAINT);
+            (HBITMAP) SelectObject(hdcMem, hbmYellowPawnSmall);
+            BitBlt(hdcBuffer, xPos-27, yPos-27, 27, 27, hdcMem,
+                0, 0, SRCPAINT);
+        } else {
+            (HBITMAP) SelectObject(hdcMem, hbmYellowPawnMask);
+            BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+                0, 0, SRCAND);
+
+            (HBITMAP) SelectObject(hdcMem, hbmYellowPawn);
+            BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+                0, 0, SRCPAINT);
+        }
+
         break;
     }
     case 2:{
-        (HBITMAP) SelectObject(hdcMem, hbmBluewPawnMask);
-        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
-            0, 0, SRCAND);
+        if(drawSmall) {
+            (HBITMAP) SelectObject(hdcMem, hbmBluewPawnSmallMask);
+            BitBlt(hdcBuffer, xPos, yPos-27, 27, 27, hdcMem,
+                0, 0, SRCAND);
 
-        (HBITMAP) SelectObject(hdcMem, hbmBluePawn);
-        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
-            0, 0, SRCPAINT);
+            (HBITMAP) SelectObject(hdcMem, hbmBluePawnSmall);
+            BitBlt(hdcBuffer, xPos, yPos-27, 27, 27, hdcMem,
+                0, 0, SRCPAINT);
+        } else {
+            (HBITMAP) SelectObject(hdcMem, hbmBluewPawnMask);
+            BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+                0, 0, SRCAND);
+
+            (HBITMAP) SelectObject(hdcMem, hbmBluePawn);
+            BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+                0, 0, SRCPAINT);
+        }
+
         break;
     }
     case 3:{
-        (HBITMAP) SelectObject(hdcMem, hbmRedPawnMask);
-        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
-            0, 0, SRCAND);
+        if(drawSmall) {
+            (HBITMAP) SelectObject(hdcMem, hbmRedPawnSmallMask);
+            BitBlt(hdcBuffer, xPos, yPos, 27, 27, hdcMem,
+                0, 0, SRCAND);
 
-        (HBITMAP) SelectObject(hdcMem, hbmRedPawn);
-        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
-            0, 0, SRCPAINT);
+            (HBITMAP) SelectObject(hdcMem, hbmRedPawnSmall);
+            BitBlt(hdcBuffer, xPos, yPos, 27, 27, hdcMem,
+                0, 0, SRCPAINT);
+        } else {
+            (HBITMAP) SelectObject(hdcMem, hbmRedPawnMask);
+            BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+                0, 0, SRCAND);
+
+            (HBITMAP) SelectObject(hdcMem, hbmRedPawn);
+            BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+                0, 0, SRCPAINT);
+        }
+
         break;
     }
     case 4:{
-        (HBITMAP) SelectObject(hdcMem, hbmGreenPawnMask);
-        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
-            0, 0, SRCAND);
+        if(drawSmall) {
+            (HBITMAP) SelectObject(hdcMem, hbmGreenPawnSmallMask);
+            BitBlt(hdcBuffer, xPos-27, yPos, 27, 27, hdcMem,
+                0, 0, SRCAND);
 
-        (HBITMAP) SelectObject(hdcMem, hbmGreenPawn);
-        BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
-            0, 0, SRCPAINT);
+            (HBITMAP) SelectObject(hdcMem, hbmGreenPawnSmall);
+            BitBlt(hdcBuffer, xPos-27, yPos, 27, 27, hdcMem,
+                0, 0, SRCPAINT);
+        } else {
+            (HBITMAP) SelectObject(hdcMem, hbmGreenPawnMask);
+            BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+                0, 0, SRCAND);
+
+            (HBITMAP) SelectObject(hdcMem, hbmGreenPawn);
+            BitBlt(hdcBuffer, xPos-27, yPos-27, 54, 54, hdcMem,
+                0, 0, SRCPAINT);
+        }
+
         break;
     }
     
     default:
         break;
     }
+}
+
+void drawDice(HDC& hdcBuffer, HDC& hdcMem, int index, int counter) {
+    switch (index)
+    {
+        case 1:{
+            BoardField bf = mapOfDices[index];
+            int position = 3;
+            (HBITMAP) SelectObject(hdcMem, hbmDiceMask);
+            BitBlt(hdcBuffer, bf.xPos-32, bf.yPos-32, 64, 64, hdcMem,
+                counter*64, position*64, SRCAND);
+
+            (HBITMAP) SelectObject(hdcMem, hbmGreenPawn);
+            BitBlt(hdcBuffer, bf.xPos-32, bf.yPos-32, 64, 64, hdcMem,
+                counter*64, position*64, SRCPAINT);
+            break;
+        }
+
+        case 2:{
+            BoardField bf = mapOfDices[index];
+            int position = 5;
+            (HBITMAP) SelectObject(hdcMem, hbmDiceMask);
+            BitBlt(hdcBuffer, bf.xPos-32, bf.yPos-32, 64, 64, hdcMem,
+                counter*64, position*64, SRCAND);
+
+            (HBITMAP) SelectObject(hdcMem, hbmGreenPawn);
+            BitBlt(hdcBuffer, bf.xPos-32, bf.yPos-32, 64, 64, hdcMem,
+                counter*64, position*64, SRCPAINT);
+            break;
+        }
+
+        case 3:{
+            BoardField bf = mapOfDices[index];
+            int position = 1;
+            (HBITMAP) SelectObject(hdcMem, hbmDiceMask);
+            BitBlt(hdcBuffer, bf.xPos-32, bf.yPos-32, 64, 64, hdcMem,
+                counter*64, position*64, SRCAND);
+
+            (HBITMAP) SelectObject(hdcMem, hbmGreenPawn);
+            BitBlt(hdcBuffer, bf.xPos-32, bf.yPos-32, 64, 64, hdcMem,
+                counter*64, position*64, SRCPAINT);
+            break;
+        }
+
+        case 4:{
+            BoardField bf = mapOfDices[index];
+            int position = 4;
+            (HBITMAP) SelectObject(hdcMem, hbmDiceMask);
+            BitBlt(hdcBuffer, bf.xPos-32, bf.yPos-32, 64, 64, hdcMem,
+                counter*64, position*64, SRCAND);
+
+            (HBITMAP) SelectObject(hdcMem, hbmGreenPawn);
+            BitBlt(hdcBuffer, bf.xPos-32, bf.yPos-32, 64, 64, hdcMem,
+                counter*64, position*64, SRCPAINT);
+            break;
+        }
+        
+        default:
+            break;
+        }
 }
 
 void drawScene(HDC hdc, RECT* rect) {
@@ -1105,9 +1299,34 @@ void drawScene(HDC hdc, RECT* rect) {
     for(Player player : players) {
         std::vector<Pawn> pawns = player.pawns;
         for(Pawn pawn : pawns) {
-            drawPawn(hdcBuffer, hdcMem, player.playerIndex, pawn.xPos, pawn.yPos);
+            bool drawSmall=false;
+            if(pawn.currentPosition!=0) {
+                std::vector<unsigned int> vec = busyFields[pawn.currentPosition];
+                for(int i=0;i<4;++i) {
+                    if(i+1!=player.playerIndex && vec.at(i)>0) drawSmall = true;
+                }
+            }
+            if(!pawn.isFinished)
+                drawPawn(hdcBuffer, hdcMem, player.playerIndex, pawn.xPos, pawn.yPos, drawSmall);
         }
     }
+
+    if(diceIsRolling) {
+        diceAnimPos = (diceAnimPos+1)%6;
+        if(diceAnimPos == 0) {
+            diceAnim = (diceAnim + 1);
+        }
+        if(diceAnim == 6){
+            diceIsRolling = false;
+            diceAnim = 0;
+        }
+        drawDice(hdcBuffer, hdcMem, currentPlayerIndedx, diceAnimPos);
+    } else {
+        drawDice(hdcBuffer, hdcMem, currentPlayerIndedx, currentDiceNumber-1);
+    }
+
+
+
 
     SelectObject(hdcMem, hbmOld);
     DeleteDC(hdcMem);
