@@ -19,15 +19,16 @@ int registerWindow(TCHAR szClassName[],
                    HINSTANCE hThisInstance,
                    HINSTANCE hPrevInstance,
                    LPSTR lpszArgument,
-                   WNDCLASSEX& wincl,
+                   WNDCLASSEX &wincl,
                    LPCSTR HICON,
                    LPCSTR HICONSM,
                    LPCSTR HCURSOR,
-                   void * winClass) {
+                   void *winClass)
+{
     wincl.hInstance = hThisInstance;
     wincl.lpszClassName = szClassName;
     wincl.lpfnWndProc = (WNDPROC)winClass; /* This function is called by windows */
-    wincl.style = CS_DBLCLKS;            /* Catch double-clicks */
+    wincl.style = CS_DBLCLKS;              /* Catch double-clicks */
     wincl.cbSize = sizeof(WNDCLASSEX);
 
     /* Use default icon and mouse-pointer */
@@ -46,18 +47,19 @@ int registerWindow(TCHAR szClassName[],
 }
 
 int registerWindowWithCustomIcon(TCHAR szClassName[],
-                   HINSTANCE hThisInstance,
-                   HINSTANCE hPrevInstance,
-                   LPSTR lpszArgument,
-                   WNDCLASSEX& wincl,
-                   int HICON,
-                   int HICONSM,
-                   LPCSTR HCURSOR,
-                   void * winClass) {
+                                 HINSTANCE hThisInstance,
+                                 HINSTANCE hPrevInstance,
+                                 LPSTR lpszArgument,
+                                 WNDCLASSEX &wincl,
+                                 int HICON,
+                                 int HICONSM,
+                                 LPCSTR HCURSOR,
+                                 void *winClass)
+{
     wincl.hInstance = hThisInstance;
     wincl.lpszClassName = szClassName;
     wincl.lpfnWndProc = (WNDPROC)winClass; /* This function is called by windows */
-    wincl.style = CS_DBLCLKS;            /* Catch double-clicks */
+    wincl.style = CS_DBLCLKS;              /* Catch double-clicks */
     wincl.cbSize = sizeof(WNDCLASSEX);
 
     /* Use default icon and mouse-pointer */

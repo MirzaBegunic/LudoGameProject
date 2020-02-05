@@ -16,14 +16,16 @@
 #include "../headers/mainFunc.hpp"
 #include "../headers/player.hpp"
 
-void testDice(HDC hdc, std::map<int, BoardField> dice) {
-    for (int i=1;i<=4;++i) {
+void testDice(HDC hdc, std::map<int, BoardField> dice)
+{
+    for (int i = 1; i <= 4; ++i)
+    {
         BoardField bf = dice[i];
-        Rectangle(hdc, bf.xPos - 5, bf.yPos -5, bf.xPos +5, bf.yPos +5);
+        Rectangle(hdc, bf.xPos - 5, bf.yPos - 5, bf.xPos + 5, bf.yPos + 5);
     }
 }
 
-void testFields(HDC hdc, std::map<int, BoardField>& mapOfBoard, std::map<int, std::map<int, BoardField>>& mapOfPlayerHomes)
+void testFields(HDC hdc, std::map<int, BoardField> &mapOfBoard, std::map<int, std::map<int, BoardField>> &mapOfPlayerHomes)
 {
     for (int i = 1; i <= 4; ++i)
     {
@@ -43,70 +45,79 @@ void testFields(HDC hdc, std::map<int, BoardField>& mapOfBoard, std::map<int, st
 }
 
 void testLoadGame(Player playerOne,
-              Player playerTwo,
-              Player playerThree,
-              Player playerFour,
-              std::ofstream & logg)
+                  Player playerTwo,
+                  Player playerThree,
+                  Player playerFour,
+                  std::ofstream &logg)
 {
-    logg<<playerOne.playerIndex<<" "<<playerOne.startingPoint<<" "<<playerOne.homePoint<<" "<<playerOne.homeEnterancePoint<<"\n";
-    
+    logg << playerOne.playerIndex << " " << playerOne.startingPoint << " " << playerOne.homePoint << " " << playerOne.homeEnterancePoint << "\n";
 
-    for(Pawn pawn: playerOne.pawns) {
-        logg<<pawn.playerIndex<<" "<<pawn.number<<" "<<pawn.xPos<<" "<<pawn.yPos<<"\n";
+    for (Pawn pawn : playerOne.pawns)
+    {
+        logg << pawn.playerIndex << " " << pawn.number << " " << pawn.xPos << " " << pawn.yPos << "\n";
     }
-    logg<<"\n";
-    
-    logg<<playerTwo.playerIndex<<" "<<playerTwo.startingPoint<<" "<<playerTwo.homePoint<<" "<<playerTwo.homeEnterancePoint<<"\n";
+    logg << "\n";
 
-    for(Pawn pawn: playerTwo.pawns) {
-        logg<<pawn.playerIndex<<" "<<pawn.number<<" "<<pawn.xPos<<" "<<pawn.yPos<<"\n";
+    logg << playerTwo.playerIndex << " " << playerTwo.startingPoint << " " << playerTwo.homePoint << " " << playerTwo.homeEnterancePoint << "\n";
+
+    for (Pawn pawn : playerTwo.pawns)
+    {
+        logg << pawn.playerIndex << " " << pawn.number << " " << pawn.xPos << " " << pawn.yPos << "\n";
     }
-    logg<<"\n";
-    
-    logg<<playerThree.playerIndex<<" "<<playerThree.startingPoint<<" "<<playerThree.homePoint<<" "<<playerThree.homeEnterancePoint<<"\n";
+    logg << "\n";
 
-    for(Pawn pawn: playerThree.pawns) {
-        logg<<pawn.playerIndex<<" "<<pawn.number<<" "<<pawn.xPos<<" "<<pawn.yPos<<"\n";
+    logg << playerThree.playerIndex << " " << playerThree.startingPoint << " " << playerThree.homePoint << " " << playerThree.homeEnterancePoint << "\n";
+
+    for (Pawn pawn : playerThree.pawns)
+    {
+        logg << pawn.playerIndex << " " << pawn.number << " " << pawn.xPos << " " << pawn.yPos << "\n";
     }
-    logg<<"\n";
-    
-    logg<<playerFour.playerIndex<<" "<<playerFour.startingPoint<<" "<<playerFour.homePoint<<" "<<playerFour.homeEnterancePoint<<"\n";
+    logg << "\n";
 
-    for(Pawn pawn: playerFour.pawns) {
-        logg<<pawn.playerIndex<<" "<<pawn.number<<" "<<pawn.xPos<<" "<<pawn.yPos<<"\n";
+    logg << playerFour.playerIndex << " " << playerFour.startingPoint << " " << playerFour.homePoint << " " << playerFour.homeEnterancePoint << "\n";
+
+    for (Pawn pawn : playerFour.pawns)
+    {
+        logg << pawn.playerIndex << " " << pawn.number << " " << pawn.xPos << " " << pawn.yPos << "\n";
     }
-    logg<<"\n";
-
+    logg << "\n";
 }
 
-void testMove(Player player, std::ofstream & logg) {
-    logg<<"player index "<<player.playerIndex<<"rolled "<<player.currentDiceRolled<<"Pawn ended up at"<<player.pawns.at(player.pawnPickedIndex-1).currentPosition<<"\n";
+void testMove(Player player, std::ofstream &logg)
+{
+    logg << "player index " << player.playerIndex << "rolled " << player.currentDiceRolled << "Pawn ended up at" << player.pawns.at(player.pawnPickedIndex - 1).currentPosition << "\n";
 }
 
-void testPawn(HDC hdc, std::vector<Player> players) {
-    for (Player player : players) {
+void testPawn(HDC hdc, std::vector<Player> players)
+{
+    for (Player player : players)
+    {
         switch (player.playerIndex)
         {
-        case 1:{
-            HBRUSH brush = CreateSolidBrush(RGB(255,255,0));
+        case 1:
+        {
+            HBRUSH brush = CreateSolidBrush(RGB(255, 255, 0));
             SelectObject(hdc, brush);
             break;
         }
 
-        case 2:{
-            HBRUSH brush = CreateSolidBrush(RGB(0,0,255));
+        case 2:
+        {
+            HBRUSH brush = CreateSolidBrush(RGB(0, 0, 255));
             SelectObject(hdc, brush);
             break;
         }
 
-        case 3:{
-            HBRUSH brush = CreateSolidBrush(RGB(255,0,0));
+        case 3:
+        {
+            HBRUSH brush = CreateSolidBrush(RGB(255, 0, 0));
             SelectObject(hdc, brush);
-            break; 
+            break;
         }
-   
-        case 4:{
-            HBRUSH brush = CreateSolidBrush(RGB(0,255,0));
+
+        case 4:
+        {
+            HBRUSH brush = CreateSolidBrush(RGB(0, 255, 0));
             SelectObject(hdc, brush);
             break;
         }
@@ -114,9 +125,10 @@ void testPawn(HDC hdc, std::vector<Player> players) {
         default:
             break;
         }
-        for (Pawn pawn : player.pawns) {
+        for (Pawn pawn : player.pawns)
+        {
             if (!pawn.isFinished)
-                Rectangle(hdc,pawn.xPos-5,pawn.yPos - 5, pawn.xPos + 5, pawn.yPos +5);
+                Rectangle(hdc, pawn.xPos - 5, pawn.yPos - 5, pawn.xPos + 5, pawn.yPos + 5);
         }
     }
 }

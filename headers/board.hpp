@@ -15,13 +15,13 @@ struct BoardField
     int bottom;
 };
 
-struct Board{
+struct Board
+{
     std::map<int, BoardField> boardPositions;
-    std::map<int,std::map<int,BoardField>> homeBoardPositions;
+    std::map<int, std::map<int, BoardField>> homeBoardPositions;
 };
 
-std::map<int,BoardField> generateBoard();
-std::map<int,std::map<int,BoardField>> generatePlayerHomes();
-
+std::map<int, BoardField> generateBoard();
+std::map<int, std::map<int, BoardField>> generatePlayerHomes();
 
 #endif

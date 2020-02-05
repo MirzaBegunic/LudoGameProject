@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 
-struct Pawn{
+struct Pawn
+{
     int playerIndex;
     int number;
     int currentPosition;
@@ -14,9 +15,11 @@ struct Pawn{
     bool isFinished = false;
 };
 
-class Player {
-    public:
-    Player(int pInd, int startPoint, int homePoint_, int homeEnt, int homeEnd_, std::vector<Pawn>& pawns_) : pawns{pawns_} {
+class Player
+{
+public:
+    Player(int pInd, int startPoint, int homePoint_, int homeEnt, int homeEnd_, std::vector<Pawn> &pawns_) : pawns{pawns_}
+    {
         playerIndex = pInd;
         startingPoint = startPoint;
         homePoint = homePoint_;
@@ -28,16 +31,17 @@ class Player {
     int startingPoint;
     int homePoint;
     int homeEnterancePoint;
-    int homeEnd;    
+    int homeEnd;
     int currentDiceRolled = 0;
     int pawnPickedIndex = 0;
     int playerPoints = 0;
     int finishCounter = 0;
     int pawnsEaten = 0;
-    std::vector<Pawn>& pawns;
+    std::vector<Pawn> &pawns;
 };
 
-struct PlayerForSort {
+struct PlayerForSort
+{
     std::string playerName = " ";
     int playerPoints;
     int pawnsEaten;
